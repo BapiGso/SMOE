@@ -1,48 +1,39 @@
-# .github/workflows/release.yaml
-
 on:
-  push: # 每次 push 的时候触发
+  push:
+    tags: ['*']
   workflow_dispatch:
 
 name: Build Release
+
+permissions:
+  contents: write
+
+env:
+  NAME: ${{ github.event.repository.name }}
+  OSES: linux windows darwin
+  ARCHES: amd64 arm64 arm riscv64
+
 jobs:
   release:
-    if: startsWith(github.ref, 'refs/tags/') # 只有这次 Commit 是 创建 Tag 时，才进行后续发布操作
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
-      - name: Set up Go
-        uses: actions/setup-go@v2
+      - uses: actions/setup-go@v5
         with:
-          go-version: 1.21
-
-#      - name: Install dependencies
-#        run: |
-#          go version
-#          go get -u github.com/BapiGso/SMOE
+          go-version: 1.26
 
       - name: Build
         run: |
-          CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o SMOE_linux_amd64
-          CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -o SMOE_linux_arm64
-          CGO_ENABLED=0 GOOS=linux GOARCH=arm go build -o SMOE_linux_arm
-          CGO_ENABLED=0 GOOS=linux GOARCH=riscv64 go build -o SMOE_linux_riscv64
-          CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -o SMOE_windows_amd64.exe
-          CGO_ENABLED=0 GOOS=windows GOARCH=arm64 go build -o SMOE_windows_arm64.exe
-          CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -o SMOE_mac_amd64
-          CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -o SMOE_mac_arm64
-          
+          valid=$(go tool dist list)
+          for os in $OSES; do
+            for arch in $ARCHES; do
+              echo "$valid" | grep -q "^${os}/${arch}$" || continue
+              ext=$([[ $os == windows ]] && echo .exe)
+              CGO_ENABLED=0 GOOS=$os GOARCH=$arch go build -o "${NAME}_${os}_${arch}${ext}" || true
+            done
+          done
 
-      - name: Release
-        uses: softprops/action-gh-release@v1
-        with: # 将下述可执行文件 release 上去
-          files: |
-            SMOE_linux_amd64
-            SMOE_linux_arm64
-            SMOE_linux_arm
-            SMOE_linux_riscv64
-            SMOE_windows_amd64.exe
-            SMOE_windows_arm64.exe
-            SMOE_mac_amd64
-            SMOE_mac_arm64
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ env.NAME }}_*

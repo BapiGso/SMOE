@@ -2,10 +2,12 @@ package handler
 
 import (
 	"SMOE/moe/database"
-	"github.com/labstack/echo/v4"
+	"os/exec"
+
+	"github.com/labstack/echo/v5"
 )
 
-func Post(c echo.Context) error {
+func Post(c *echo.Context) error {
 	qpu := new(database.QPU)
 	req := &struct {
 		Cid int `param:"cid" validate:"gte=0"`
@@ -23,7 +25,7 @@ func Post(c echo.Context) error {
 		return err
 	}
 	if len(qpu.Contents) == 0 {
-		return echo.NotFoundHandler(c)
+		return exec.ErrDot //todo
 	}
 	// 递归查询 https://www.sqlite.org/lang_with.html
 	if err := database.DB.Select(&qpu.Comments, `

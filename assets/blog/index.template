@@ -1,3 +1,35 @@
+{{if .IsAjax}}
+    {{range slice .Contents 0 5 }}
+    {{if eq .Type "post"}}
+        <div class="post">
+            <a @click.prevent="ajaxPost($el.href)" href="/archives/{{.Cid}}" title="{{.Title}}">
+                <img class="cover" width="680" height="440" src="/usr/uploads/Background/Cover{{.CoverList}}" alt="illustration">
+            </a>
+            <div class="else">
+                <p>{{ .UnixToStr }}</p>
+                <h3><a @click.prevent="ajaxPost($el.href)" class="posttitle" href="/archives/{{ .Cid }}">{{ .Title }}</a></h3>
+                <div class="abstract">
+                    <p>{{ .MDSub }}...</p>
+                </div>
+                <div class="here">
+                    <i class="icon-letter"></i>
+                    <p>{{ .MDCount }}</p>
+                    <i class="icon-view"></i>
+                    <p>{{ .Views }}</p>
+                    <i class="icon-like"></i>
+                    <p>{{ .Likes }}</p>
+                </div>
+            </div>
+        </div>
+    {{end}}
+    {{end}}
+
+    {{if ge (len .Contents) 5}}
+        {{if ne (index .Contents 5).Type "post"}}
+            <template x-init="pageNum=0;$el.remove()"></template>
+        {{end}}
+    {{end}}
+{{else}}
 {{template "header.template"}}
 <body x-data="smoe">
     <nav>
@@ -16,10 +48,63 @@
     </nav>
     <main>
         <div id="screen">
-            {{ template "index-container.template" . }}
+            {{with index .Contents 0}}
+            <div id="mark" x-init="new Parallax($el)">
+                <div class="layer" data-depth="0.4">
+                    <img id="cover" src="/usr/uploads/Background/Cover/1.webp" alt="illustration" x-init="vibrant($el)">
+                </div>
+            </div>
+
+            <!--todo blur glass-->
+            <div id="vibrant">
+                <svg viewBox="0 0 2880 1620" height="100%" preserveAspectRatio="xMaxYMax slice">
+                    <polygon opacity="0.7" points="2000,1620 0,1620 0,0 600,0 "/>
+                </svg>
+            </div>
+
+            <div id="header">
+                <a class="logo" href="/"></a>
+                <button class="switchmenu" @click="window.scrollTo(0, 0);document.documentElement.classList.toggle('mu');">
+                    <svg  width="32" height="32" viewBox="0 0 100 100">
+                        <path class="line1" d="M 20,29 H 80 C 80,29 94,28 94,66 94,78 91,81 85,81 79,81 75,75 75,75 L 25,25" stroke-dasharray="60 207" />
+                        <path class="line2" d="M 20,50 H 80" stroke-dasharray="60 60" />
+                        <path class="line3" d="M 20,71 H 80 C 80,71 94,71 94,33 94,22 91,18 85,18 79,18 75,25 75,25 L 25,75" stroke-dasharray="60 207" />
+                    </svg>
+                </button>
+            </div>
+
+            <div id="post0">
+                <p>{{ .UnixToStr }}</p>
+                <h2><a @click.prevent="ajaxPost($el.href)" class="posttitle" href="/archives/{{ .Cid }}">{{ .Title }}</a></h2>
+                <div class="summary"><p>{{ .MDSub }}...</p></div>
+            </div>
+            {{end}}
         </div>
         <div id="primary">
-            {{ template "index-primary.template" . }}
+            {{range (slice .Contents 1 5) }}
+                {{if eq .Type "post"}}
+                <div class="post">
+                    <a @click.prevent="ajaxPost($el.href)" href="/archives/{{.Cid}}" title="{{.Title}}">
+                        <img class="cover" width="680" height="440" src="/usr/uploads/Background/Cover{{.CoverList}}" alt="illustration" loading="lazy">
+                    </a>
+                    <div class="else">
+                        <p>{{ .UnixToStr }}</p>
+                        <h3><a @click.prevent="ajaxPost($el.href)" class="posttitle" href="/archives/{{ .Cid }}">{{ .Title }}</a></h3>
+                        <div class="abstract">
+                            <p>{{ .MDSub }}...</p>
+                        </div>
+                        <div class="here">
+                            <i class="icon-letter"></i>
+                            <p>{{ .MDCount }}</p>
+                            <i class="icon-view"></i>
+                            <p>{{ .Views }}</p>
+                            <i class="icon-like"></i>
+                            <p>{{ .Likes }}</p>
+                        </div>
+                    </div>
+                </div>
+                {{end}}
+            {{end}}
         </div>
         {{if ge (len .Contents) 5}}
             {{if ne (index .Contents 5).Type "post"}}
@@ -30,3 +115,4 @@
     </main>
     {{template "footer.template"}}
 </body>
+{{end}}

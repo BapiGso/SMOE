@@ -3,10 +3,11 @@ package mymiddleware
 import (
 	"context"
 	"fmt"
-	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
 	"log/slog"
 	"os"
+
+	"github.com/labstack/echo/v5"
+	"github.com/labstack/echo/v5/middleware"
 )
 
 var slogDefault = func() *slog.Logger {
@@ -31,13 +32,12 @@ func Slog() echo.MiddlewareFunc {
 		LogURI:      true,
 		LogStatus:   true,
 		LogRemoteIP: true,
-		LogError:    true,
-		LogValuesFunc: func(c echo.Context, v middleware.RequestLoggerValues) error {
+		LogValuesFunc: func(c *echo.Context, v middleware.RequestLoggerValues) error {
 			slog.LogAttrs(context.Background(), slog.LevelInfo, fmt.Sprintf("err=%v", v.Error),
 				slog.String("Method", v.Method),
-				slog.String("Url", v.URI),
 				slog.String("IP", v.RemoteIP),
 				slog.Int("Status", v.Status),
+				slog.String("Url", v.URI),
 			)
 			return nil
 		},

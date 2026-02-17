@@ -2,7 +2,7 @@ package handler
 
 import (
 	"fmt"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"hash/crc32"
 	"io"
 	"net/http"
@@ -12,7 +12,7 @@ import (
 )
 
 // UploadImage 处理上传图片的请求 todo 多文件上传
-func Upload(c echo.Context) error {
+func Upload(c *echo.Context) error {
 	files, err := c.MultipartForm()
 	if err != nil {
 		return err

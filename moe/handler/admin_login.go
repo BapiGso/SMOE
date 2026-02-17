@@ -4,14 +4,14 @@ import (
 	"SMOE/moe/database"
 	"SMOE/moe/mymiddleware"
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"golang.org/x/crypto/bcrypt"
 	"log/slog"
 	"net/http"
 	"time"
 )
 
-func LoginGet(c echo.Context) error {
+func LoginGet(c *echo.Context) error {
 	user, ok := c.Get("user").(*jwt.Token)
 	if !ok {
 		return c.Render(http.StatusOK, "login.template", nil)
@@ -23,7 +23,7 @@ func LoginGet(c echo.Context) error {
 	return echo.ErrUnauthorized
 }
 
-func LoginPost(c echo.Context) error {
+func LoginPost(c *echo.Context) error {
 	qpu := &database.QPU{}
 	req := &struct {
 		Name     string `form:"user" validate:"required,min=1,max=200"`

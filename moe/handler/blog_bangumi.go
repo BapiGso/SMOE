@@ -3,7 +3,7 @@ package handler
 import (
 	"SMOE/moe/database"
 	"encoding/json"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"io"
 	"net/http"
 	"sort"
@@ -150,7 +150,7 @@ type bgmCache struct {
 var bgm = bgmCache{}
 
 // Bangumi todo https://freefrontend.com/css-cards/
-func Bangumi(c echo.Context) error {
+func Bangumi(c *echo.Context) error {
 	qpu := new(database.QPU)
 	if err := database.DB.Get(&qpu.Options, `SELECT * FROM smoe_options WHERE name = 'Goplugin:BangumiList'`); err != nil {
 		return err

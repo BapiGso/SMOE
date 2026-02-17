@@ -3,11 +3,10 @@ package moe
 import (
 	"SMOE/moe/handler"
 	"SMOE/moe/mymiddleware"
-	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
 	"net/http"
-	"path/filepath"
 	"text/template"
+
+	"github.com/labstack/echo/v5/middleware"
 )
 
 func (s *Smoe) LoadMiddlewareRoutes() {
@@ -45,32 +44,24 @@ func (s *Smoe) LoadMiddlewareRoutes() {
 	//s.e.Use(middleware.Logger())
 	s.e.Use(middleware.Recover())
 
-	//echoV5更新时换成broitil编码
-	s.e.Pre(mymiddleware.AutoCompression())
+	s.e.Pre(mymiddleware.Brotli())
 
 	//http重定向https
 	//s.e.Pre(middleware.HTTPSRedirect())
 
 	//使用jwt控制后台访问
 	s.e.Use(mymiddleware.JWT())
-	s.e.Group("/assets", middleware.StaticWithConfig(middleware.StaticConfig{
-		//skipper跳过一些不想让用户和爬虫看到的文件
-		Skipper: func(c echo.Context) bool {
-			c.Response().Header().Set("Cache-Control", "public, max-age=3600")
-			ext := filepath.Ext(c.Request().URL.Path)
-			return !(ext == ".css" || ext == ".js" || ext == ".ico" || ext == ".svg" || ext == ".webp")
-		},
-		Filesystem: http.FS(s.themeFS),
-	}))
-	//自定义404
+
+	s.e.StaticFS("/assets", s.themeFS)
+
 	s.e.HTTPErrorHandler = handler.FrontErr //自定义错误页面
 	front := s.e.Group("")
 	back := s.e.Group("/admin")
 
 	// 前台页面路由
-	front.Use(mymiddleware.InsightLog)
+	//front.Use(mymiddleware.InsightLog)
 	//301跳转去除尾部斜杠
-	front.Use(middleware.RemoveTrailingSlashWithConfig(middleware.TrailingSlashConfig{
+	front.Use(middleware.RemoveTrailingSlashWithConfig(middleware.RemoveTrailingSlashConfig{
 		RedirectCode: http.StatusMovedPermanently,
 	}))
 	front.GET("/", handler.Index)                                      // 首页路由

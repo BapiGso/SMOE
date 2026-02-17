@@ -2,10 +2,11 @@ package handler
 
 import (
 	"SMOE/moe/database"
-	"github.com/labstack/echo/v4"
+
+	"github.com/labstack/echo/v5"
 )
 
-func Manage(c echo.Context) error {
+func Manage(c *echo.Context) error {
 	qpu := &database.QPU{}
 	req := &struct {
 		Type       string `param:"type"       default:"post" `

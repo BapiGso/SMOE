@@ -1,16 +1,17 @@
 package mymiddleware
 
 import (
-	"github.com/labstack/echo/v4"
 	"io"
 	"text/template"
+
+	"github.com/labstack/echo/v5"
 )
 
 type TemplateRender struct {
-	Template *template.Template //渲染模板
+	*template.Template //渲染模板
 }
 
-// Render todo 可以在这里检查data是否有cache，有的话用cache，没有的话添加进cache
-func (t *TemplateRender) Render(w io.Writer, name string, data any, c echo.Context) error {
-	return t.Template.ExecuteTemplate(w, name, data)
+func (t *TemplateRender) Render(c *echo.Context, w io.Writer, name string, data any) error {
+	// Context 在这里虽然传入了，但在单纯的各种模板渲染中可能暂时用不到，除非你需要从 c 中获取额外信息注入模板
+	return t.ExecuteTemplate(w, name, data)
 }

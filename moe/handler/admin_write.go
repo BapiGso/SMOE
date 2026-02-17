@@ -2,12 +2,12 @@ package handler
 
 import (
 	"SMOE/moe/database"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"strconv"
 	"time"
 )
 
-func Write(c echo.Context) error {
+func Write(c *echo.Context) error {
 	qpu := &database.QPU{}
 	req := &struct {
 		Cid          int    `db:"cid"     param:"cid" validate:"gte=0"`

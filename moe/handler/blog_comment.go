@@ -2,15 +2,15 @@ package handler
 
 import (
 	"SMOE/moe/database"
-	"github.com/golang-jwt/jwt/v5"
-	"github.com/labstack/echo/v4"
 	"strings"
 	"text/template"
 	"time"
+
+	"github.com/golang-jwt/jwt/v5"
+	"github.com/labstack/echo/v5"
 )
 
-// SubmitArticleComment todo 工作量证明
-func SubmitArticleComment(c echo.Context) error {
+func SubmitArticleComment(c *echo.Context) error {
 	req := &struct {
 		Parent   uint   `xml:"parent"   form:"parent" validate:""`
 		Cid      uint   `xml:"cid"      form:"cid"    validate:"required"`

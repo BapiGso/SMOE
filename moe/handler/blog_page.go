@@ -2,10 +2,11 @@ package handler
 
 import (
 	"SMOE/moe/database"
-	"github.com/labstack/echo/v4"
+
+	"github.com/labstack/echo/v5"
 )
 
-func Page(c echo.Context) error {
+func Page(c *echo.Context) error {
 	qpu := new(database.QPU)
 	err := database.DB.Select(&qpu.Contents, `
 		SELECT * FROM  smoe_contents 

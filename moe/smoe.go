@@ -4,7 +4,7 @@ import (
 	"SMOE/assets"
 	"SMOE/moe/tools"
 	"embed"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 )
 
 type Smoe struct {

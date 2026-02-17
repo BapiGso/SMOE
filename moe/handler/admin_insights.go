@@ -3,9 +3,10 @@ package handler
 import (
 	"SMOE/moe/database"
 	"encoding/json"
-	"github.com/labstack/echo/v4"
-	"github.com/mileusna/useragent"
 	"time"
+
+	"github.com/labstack/echo/v5"
+	"github.com/mileusna/useragent"
 )
 
 type smoeInsight struct {
@@ -26,7 +27,7 @@ func (s *smoeInsight) Json() string {
 	return string(marshal)
 }
 
-func Insight(c echo.Context) error {
+func Insight(c *echo.Context) error {
 	qpu := &database.QPU{}
 	req := &struct {
 		Past int64 `query:"past"`
