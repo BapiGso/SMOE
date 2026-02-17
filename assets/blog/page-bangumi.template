@@ -3,30 +3,117 @@
 <header id="top">
     <a class="logo-min" href="javascript:history.back()"></a>
 </header>
-    <article class="page bangumi" >
-        <section>
-        <h2><strong>看过</strong></h2>
-        <ul>
-            {{range .Data}}
-            {{if ne .Type 1}}
-            <li>
-                <a href="//bgm.tv/subject/{{.SubjectID}}" target="_blank"><img alt="{{.Subject.Name}}" class="cover" src="{{with .Subject.Images}}{{.Small}}{{end}}"></a>
-                <p>{{if .Subject.NameCn}}{{.Subject.NameCn}}{{else}}{{.Subject.Name}}{{end}}</p>
-            </li>
-            {{end}}
-            {{end}}
-        </ul>
-        <h2><strong>想看</strong></h2>
-        <ul>
-            {{range .Data}}
-            {{if eq .Type 1}}
-            <li>
-                <a href="//bgm.tv/subject/{{.SubjectID}}" target="_blank"><img alt="{{.Subject.Name}}" class="cover" src="{{with .Subject.Images}}{{.Small}}{{end}}"></a>
-                <p>{{if .Subject.NameCn}}{{.Subject.NameCn}}{{else}}{{.Subject.Name}}{{end}}</p>
-            </li>
-            {{end}}
-            {{end}}
-        </ul>
-        </section>
-    </article>
+<style>
+.bangumi {
+    max-width: 1200px;
+    margin: 2em auto;
+    padding: 0 2em;
+}
+.bangumi h2 {
+    margin: 1.5em 0 1em;
+}
+.bgm-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 6px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+.bgm-card {
+    position: relative;
+    display: block;
+    overflow: hidden;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    transform: translate3d(0, 0, 0);
+}
+.bgm-card a {
+    display: block;
+    text-decoration: none;
+}
+.bgm-card img {
+    width: 100%;
+    aspect-ratio: 5 / 7;
+    object-fit: cover;
+    display: block;
+}
+.bgm-card .hover {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, .69);
+    opacity: 0;
+    transition: opacity .3s;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 14px;
+    box-sizing: border-box;
+}
+.bgm-card:hover .hover {
+    opacity: 1;
+}
+.bgm-card .hover strong {
+    color: #fff;
+    font-size: 14px;
+    line-height: 1.5;
+    margin-bottom: 8px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+.bgm-card .hover span {
+    color: rgba(255,255,255,.75);
+    font-size: 12px;
+    line-height: 1.6;
+    display: -webkit-box;
+    -webkit-line-clamp: 6;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+</style>
+
+<article class="page bangumi">
+    <section>
+    <h2><strong>看过</strong></h2>
+    <ul class="bgm-grid">
+        {{range .Data}}
+        {{if ne .Type 1}}
+        <li class="bgm-card">
+            <a href="//bgm.tv/subject/{{.SubjectID}}" target="_blank" rel="noopener">
+                <div class="hover">
+                    <strong>{{if .Subject.NameCn}}{{.Subject.NameCn}}{{else}}{{.Subject.Name}}{{end}}</strong>
+                    <span>{{.Subject.ShortSummary}}</span>
+                </div>
+                <img src="{{with .Subject.Images}}{{.Common}}{{end}}" alt="{{.Subject.Name}}" loading="lazy">
+            </a>
+        </li>
+        {{end}}
+        {{end}}
+    </ul>
+    <h2><strong>想看</strong></h2>
+    <ul class="bgm-grid">
+        {{range .Data}}
+        {{if eq .Type 1}}
+        <li class="bgm-card">
+            <a href="//bgm.tv/subject/{{.SubjectID}}" target="_blank" rel="noopener">
+                <div class="hover">
+                    <strong>{{if .Subject.NameCn}}{{.Subject.NameCn}}{{else}}{{.Subject.Name}}{{end}}</strong>
+                    <span>{{.Subject.ShortSummary}}</span>
+                </div>
+                <img src="{{with .Subject.Images}}{{.Common}}{{end}}" alt="{{.Subject.Name}}" loading="lazy">
+            </a>
+        </li>
+        {{end}}
+        {{end}}
+    </ul>
+    </section>
+</article>
+{{template "footer.template"}}
 </body>
