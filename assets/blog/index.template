@@ -1,45 +1,33 @@
-{{if .IsAjax}}
-    {{range slice .Contents 0 5 }}
-    {{if eq .Type "post"}}
-        <div class="post">
-            <a @click.prevent="ajaxPost($el.href)" href="/archives/{{.Cid}}" title="{{.Title}}">
-                <img class="cover" width="680" height="440" src="/usr/uploads/Background/Cover{{.CoverList}}" alt="illustration">
-            </a>
-            <div class="else">
-                <p>{{ .UnixToStr }}</p>
-                <h3><a @click.prevent="ajaxPost($el.href)" class="posttitle" href="/archives/{{ .Cid }}">{{ .Title }}</a></h3>
-                <div class="abstract">
-                    <p>{{ .MDSub }}...</p>
-                </div>
-                <div class="here">
-                    <i class="icon-letter"></i>
-                    <p>{{ .MDCount }}</p>
-                    <i class="icon-view"></i>
-                    <p>{{ .Views }}</p>
-                    <i class="icon-like"></i>
-                    <p>{{ .Likes }}</p>
-                </div>
-            </div>
+{{define "post-card"}}
+<div class="post">
+    <a @click.prevent="ajaxPost($el.href)" href="/archives/{{.Cid}}" title="{{.Title}}">
+        <img class="cover" width="680" height="440" src="/usr/uploads/Background/Cover{{.CoverList}}" alt="illustration" loading="lazy">
+    </a>
+    <div class="else">
+        <p>{{ .UnixToStr }}</p>
+        <h3><a @click.prevent="ajaxPost($el.href)" class="posttitle" href="/archives/{{ .Cid }}">{{ .Title }}</a></h3>
+        <div class="abstract">
+            <p>{{ .MDSub }}...</p>
         </div>
-    {{end}}
-    {{end}}
-
-    {{if ge (len .Contents) 5}}
-        {{if ne (index .Contents 5).Type "post"}}
-            <template x-init="pageNum=0;$el.remove()"></template>
-        {{end}}
-    {{end}}
-{{else}}
+        <div class="here">
+            <i class="icon-letter"></i>
+            <p>{{ .MDCount }}</p>
+            <i class="icon-view"></i>
+            <p>{{ .Views }}</p>
+            <i class="icon-like"></i>
+            <p>{{ .Likes }}</p>
+        </div>
+    </div>
+</div>
+{{end}}
 {{template "header.template"}}
 <body x-data="smoe">
     <nav>
         <ul class="menu">
-            {{ range .Contents }}
-                {{if eq .Type "page"}}
-                    <li id="{{.Slug}}">
-                        <a @click.prevent="ajaxPost($el.href)" href="/{{.Slug}}" class="pagelist">{{.Title}}</a>
-                    </li>
-                {{end}}
+            {{ range .Pages }}
+                <li id="{{.Slug}}">
+                    <a @click.prevent="ajaxPost($el.href)" href="/{{.Slug}}" class="pagelist">{{.Title}}</a>
+                </li>
             {{ end }}
         </ul>
         <p>&copy; 2020 <a href="/">晓梦</a>. Power By <a rel="external nofollow" href="https://github.com/BapiGso/smoe">smoe</a>.
@@ -48,7 +36,8 @@
     </nav>
     <main>
         <div id="screen">
-            {{with index .Contents 0}}
+            {{if .Posts}}
+            {{with index .Posts 0}}
             <div id="mark" x-init="new Parallax($el)">
                 <div class="layer" data-depth="0.4">
                     <img id="cover" src="/usr/uploads/Background/Cover/1.webp" alt="illustration" x-init="vibrant($el)">
@@ -79,40 +68,16 @@
                 <div class="summary"><p>{{ .MDSub }}...</p></div>
             </div>
             {{end}}
+            {{end}}
         </div>
         <div id="primary">
-            {{range (slice .Contents 1 5) }}
-                {{if eq .Type "post"}}
-                <div class="post">
-                    <a @click.prevent="ajaxPost($el.href)" href="/archives/{{.Cid}}" title="{{.Title}}">
-                        <img class="cover" width="680" height="440" src="/usr/uploads/Background/Cover{{.CoverList}}" alt="illustration" loading="lazy">
-                    </a>
-                    <div class="else">
-                        <p>{{ .UnixToStr }}</p>
-                        <h3><a @click.prevent="ajaxPost($el.href)" class="posttitle" href="/archives/{{ .Cid }}">{{ .Title }}</a></h3>
-                        <div class="abstract">
-                            <p>{{ .MDSub }}...</p>
-                        </div>
-                        <div class="here">
-                            <i class="icon-letter"></i>
-                            <p>{{ .MDCount }}</p>
-                            <i class="icon-view"></i>
-                            <p>{{ .Views }}</p>
-                            <i class="icon-like"></i>
-                            <p>{{ .Likes }}</p>
-                        </div>
-                    </div>
-                </div>
-                {{end}}
+            {{if gt (len .Posts) 1}}
+            {{range (slice .Posts 1)}}
+                {{template "post-card" .}}
+            {{end}}
             {{end}}
         </div>
-        {{if ge (len .Contents) 5}}
-            {{if ne (index .Contents 5).Type "post"}}
-                <template x-init="pageNum=0;$el.remove()"></template>
-            {{end}}
-        {{end}}
-        <button x-show="pageNum!==0" class="more" @click.prevent="ajaxNextPage()">加载更多</button>
+        <button x-show="hasMore" x-init="hasMore={{.HasMore}}" class="more" @click.prevent="ajaxNextPage()">加载更多</button>
     </main>
     {{template "footer.template"}}
 </body>
-{{end}}

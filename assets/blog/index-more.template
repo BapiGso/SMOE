@@ -1,0 +1,3 @@
+{{range .}}
+{{template "post-card" .}}
+{{end}}

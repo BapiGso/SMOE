@@ -1,21 +1,17 @@
 package handler
 
 import (
-	"SMOE/moe/database"
-
+	"SMOE/moe/store"
 	"github.com/labstack/echo/v5"
 )
 
 func Page(c *echo.Context) error {
-	qpu := new(database.QPU)
-	err := database.DB.Select(&qpu.Contents, `
-		SELECT * FROM  smoe_contents 
-		WHERE type='page' AND slug = ?`, c.Param("page"))
-	if len(qpu.Contents) == 0 {
+	content, err := store.GetPageBySlug(c.Param("page"))
+	if err != nil {
 		return echo.ErrNotFound
 	}
-	if err != nil {
-		return err
+	qpu := &store.QPU{
+		Contents: []store.Contents{content},
 	}
 	return c.Render(200, "page.template", qpu)
 }

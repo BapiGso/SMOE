@@ -38,21 +38,11 @@ document.addEventListener('alpine:init', () => {
                 icon.style.stroke = swatches['Vibrant'].getHex();
             });
         },
-        pageNum:(()=> {// 从路径中提取最后一个斜杠后的参数（页数
-            const path = window.location.href.split('?')[0];
-            const param = path.substring(path.lastIndexOf('/') + 1);
-            return Number(param) | 2;
+        hasMore: true,
+        pageNum: (() => {
+            const match = window.location.pathname.match(/\/page\/(\d+)/);
+            return match ? parseInt(match[1]) + 1 : 2;
         })(),
-        // scrollTop : (function() {
-        //     window.addEventListener('scroll', function() {
-        //         return window.pageYOffset;
-        //     });
-        //     this.preview.addEventListener('scroll', function() {
-        //         if (!$("#preview") )return 0
-        //     })
-
-        //     return 0
-        // })(),
         ajaxPost: function(url){
             fetch(url)
                 .then(r => r.text())
@@ -66,13 +56,18 @@ document.addEventListener('alpine:init', () => {
                     }));//手动触发popstate
                 })
         },
-        ajaxNextPage: function ()  {
+        ajaxNextPage: function () {
             fetch(`/page/${this.pageNum}`)
-                .then(r => r.text())
+                .then(r => {
+                    this.hasMore = r.headers.get('X-Has-More') === 'true';
+                    return r.text();
+                })
                 .then(data => {
-                    $('#primary').insertAdjacentHTML('beforeend', data);
+                    if (data.trim()) {
+                        $('#primary').insertAdjacentHTML('beforeend', data);
+                    }
                     this.pageNum++;
-            })
+                })
         },
         bgmPlayer: {
             playing:false,

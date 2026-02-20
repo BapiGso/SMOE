@@ -17,10 +17,13 @@ func (s *Smoe) LoadMiddlewareRoutes() {
 				s.themeFS,
 				"blog/*.template",
 				"blog/css/*.css",
-				"new-admin/*.template",
+				"admin/*.template",
 			),
 		).Funcs(template.FuncMap{}),
 	}
+	// WebDAV 文件挂载：/webdav/* → usr/，Basic Auth，必须在 Brotli 之前注册
+	s.e.Pre(mymiddleware.WebDAV())
+
 	//Secure防XSS，HSTS防中间人攻击 todo 防盗链
 	s.e.Pre(middleware.SecureWithConfig(middleware.SecureConfig{
 		HSTSMaxAge:            31536000,
@@ -64,8 +67,8 @@ func (s *Smoe) LoadMiddlewareRoutes() {
 	front.Use(middleware.RemoveTrailingSlashWithConfig(middleware.RemoveTrailingSlashConfig{
 		RedirectCode: http.StatusMovedPermanently,
 	}))
-	front.GET("/", handler.Index)                                      // 首页路由
-	front.GET("/page/:num", handler.Index)                             // 分页路由，显示指定页数的文章列表
+	front.GET("/", handler.IndexGorm)                                  // 首页路由 (GORM版本)
+	front.GET("/page/:num", handler.IndexGorm)                         // 分页路由 (GORM版本)
 	front.GET("/archives/:cid", handler.Post)                          // 根据分类ID显示该分类下的文章列表
 	front.POST("/archives/:cid/comment", handler.SubmitArticleComment) // 管理评论提交
 	front.GET("/:page", handler.Page)                                  // 独立页面，注册在特殊独立页面前

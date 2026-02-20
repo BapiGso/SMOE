@@ -1,17 +1,17 @@
 package handler
 
 import (
-	"SMOE/moe/database"
-	"github.com/jmoiron/sqlx"
-	"github.com/labstack/echo/v5"
+	"SMOE/moe/store"
+	"strconv"
 	"strings"
+
+	"github.com/labstack/echo/v5"
 )
 
-// Index TODO 加载更多。ajax
-func Index(c *echo.Context) error {
-	qpu := new(database.QPU)
+// IndexGorm GORM版本的首页
+func IndexGorm(c *echo.Context) error {
 	req := &struct {
-		PageNum int `param:"num" validate:"gte=1" default:"1"`
+		PageNum int `param:"num" validate:"gte=0" default:"1"`
 	}{}
 	if err := c.Bind(req); err != nil {
 		return err
@@ -20,31 +20,28 @@ func Index(c *echo.Context) error {
 		return err
 	}
 
-	const postsPerPage = 5
-	if err := qpu.LoadIndexContents("publish", req.PageNum, postsPerPage); err != nil {
+	const pageSize = 5
+	posts, hasMore, err := store.GetPostsByCidDesc(pageSize, (req.PageNum-1)*pageSize)
+	if err != nil {
 		return err
 	}
 
+	// AJAX请求：只返回文章卡片片段，不查pages
 	isAjax := !strings.Contains(c.Request().Header.Get(echo.HeaderAccept), echo.MIMETextHTML)
-	data := struct {
-		*database.QPU
-		IsAjax bool
-	}{
-		QPU:    qpu,
-		IsAjax: isAjax,
+	if isAjax {
+		c.Response().Header().Set("X-Has-More", strconv.FormatBool(hasMore))
+		return c.Render(200, "index-more.template", posts)
 	}
 
-	return c.Render(200, "index.template", data)
-}
+	// 首页完整渲染：额外查询独立页面用于导航栏
+	pages, err := store.GetAllPages()
+	if err != nil {
+		return err
+	}
 
-// Deprecated: use x-request-with instead of
-func IndexAjax(c *echo.Context) error {
-	_ = c.Get("db").(*sqlx.DB)
 	return c.Render(200, "index.template", struct {
-		*database.QPU
-		IsAjax bool
-	}{
-		QPU:    new(database.QPU),
-		IsAjax: true,
-	})
+		Posts   []store.Contents
+		Pages   []store.Contents
+		HasMore bool
+	}{Posts: posts, Pages: pages, HasMore: hasMore})
 }

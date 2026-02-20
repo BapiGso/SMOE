@@ -1,8 +1,8 @@
 package handler
 
 import (
-	"SMOE/moe/database"
 	"SMOE/moe/mymiddleware"
+	"SMOE/moe/store"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/labstack/echo/v5"
 	"golang.org/x/crypto/bcrypt"
@@ -24,7 +24,6 @@ func LoginGet(c *echo.Context) error {
 }
 
 func LoginPost(c *echo.Context) error {
-	qpu := &database.QPU{}
 	req := &struct {
 		Name     string `form:"user" validate:"required,min=1,max=200"`
 		Pwd      string `form:"pwd" validate:"required,min=8,max=200"`
@@ -36,11 +35,12 @@ func LoginPost(c *echo.Context) error {
 	if err := c.Validate(req); err != nil {
 		return err
 	}
-	if err := database.DB.Get(&qpu.User, `SELECT * FROM  smoe_users WHERE name = ?`, req.Name); err != nil {
-		return err
+	user, err := store.GetUser(req.Name)
+	if err != nil {
+		return echo.ErrUnauthorized
 	}
 	//计算提交表单的密码与盐 scrypt和数据库中密码是否一致
-	if err := bcrypt.CompareHashAndPassword([]byte(qpu.User.Password), []byte(req.Pwd)); err == nil {
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Pwd)); err == nil {
 		token := jwt.NewWithClaims(jwt.SigningMethodHS256, &jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 24 * 7)), //过期日期设置7天
 		})

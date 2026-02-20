@@ -1,9 +1,9 @@
 package mymiddleware
 
 import (
-	"flag"
 	"math/rand"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -12,17 +12,13 @@ import (
 	"github.com/labstack/echo/v5"
 )
 
-// JWTKey 生成一个随机[]byte
-var JWTKey = []byte(strconv.Itoa(rand.Int()))
-
-func init() {
-	debug := flag.Bool("debug", false, "enable debug mode")
-	// 解析传入的命令行参数
-	flag.Parse()
-	if *debug {
-		JWTKey = []byte("123")
+// JWTKey 随机密钥；设置环境变量 SMOE_DEBUG=1 可固定为 "123" 方便调试
+var JWTKey = func() []byte {
+	if os.Getenv("SMOE_DEBUG") != "" {
+		return []byte("123")
 	}
-}
+	return []byte(strconv.Itoa(rand.Int()))
+}()
 
 func JWT() echo.MiddlewareFunc {
 	return echojwt.WithConfig(echojwt.Config{

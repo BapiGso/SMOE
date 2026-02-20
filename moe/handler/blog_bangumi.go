@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"SMOE/moe/database"
+	"SMOE/moe/store"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -11,71 +11,11 @@ import (
 	"github.com/labstack/echo/v5"
 )
 
-const (
-	// SubjectType
-	// Book 书籍
-	book = 1
-	// Animation 动画
-	animation = 2
-	// Music 音乐
-	music = 3
-	// Game 游戏
-	game = 4
-	// ThreeD 三次元
-	threeD = 5
-
-	// CollectionType
-	// WantToWatch 想看
-	wantToWatch = 1
-	// Watched 看过
-	watched = 2
-	// Watching 在看
-	watching = 3
-	// OnHold 搁置
-	onHold = 4
-	// Dropped 抛弃
-	dropped = 5
-)
-
-type OldBangumi []struct {
-	Type     int    `json:"type"`
-	Name     string `json:"name"`
-	NameCn   string `json:"name_cn"`
-	Collects []struct {
-		Status struct {
-			ID   int    `json:"id"`
-			Type string `json:"type"`
-			Name string `json:"name"`
-		} `json:"status"`
-		Count int `json:"count"`
-		List  []struct {
-			SubjectID int `json:"subject_id"`
-			Subject   struct {
-				ID         int    `json:"id"`
-				URL        string `json:"url"`
-				Type       int    `json:"type"`
-				Name       string `json:"name"`
-				NameCn     string `json:"name_cn"`
-				Summary    string `json:"summary"`
-				AirDate    string `json:"air_date"`
-				AirWeekday int    `json:"air_weekday"`
-				Images     struct {
-					Large  string `json:"large"`
-					Common string `json:"common"`
-					Medium string `json:"medium"`
-					Small  string `json:"small"`
-					Grid   string `json:"grid"`
-				} `json:"images"`
-			} `json:"subject"`
-		} `json:"list"`
-	} `json:"collects"`
-}
-
 type NewBangumi struct {
 	Data []struct {
-		UpdatedAt time.Time     `json:"updated_at"`
-		Comment   interface{}   `json:"comment"`
-		Tags      []interface{} `json:"tags"`
+		UpdatedAt time.Time `json:"updated_at"`
+		Comment   any       `json:"comment"`
+		Tags      []any     `json:"tags"`
 		Subject   struct {
 			Date   string `json:"date"`
 			Images struct {
@@ -138,12 +78,11 @@ func curlBGM(url string) error {
 	sort.Slice(m.Data, func(i, j int) bool {
 		return m.Data[i].Subject.ID < m.Data[j].Subject.ID
 	})
-	bgm = bgmCache{nil, m, time.Now().Unix()}
+	bgm = bgmCache{m, time.Now().Unix()}
 	return err
 }
 
 type bgmCache struct {
-	OldBangumi OldBangumi
 	NewBangumi NewBangumi
 	TTL        int64
 }
@@ -152,19 +91,11 @@ var bgm = bgmCache{}
 
 // Bangumi todo https://freefrontend.com/css-cards/
 func Bangumi(c *echo.Context) error {
-	qpu := new(database.QPU)
-	if err := database.DB.Get(&qpu.Options, `SELECT * FROM smoe_options WHERE name = 'Goplugin:BangumiList'`); err != nil {
+	cfg, err := store.ReadConfig()
+	if err != nil {
 		return err
 	}
-	m := struct {
-		UserID string
-		AppID  string
-	}{}
-	if err := json.Unmarshal([]byte(qpu.Options.Value), &m); err != nil {
-		return err
-	}
-	//oldAPI := "https://api.bgm.tv/user/" + m.UserID + "/collections/anime?app_id=" + m.AppID + "&max_results=99"
-	newAPI := "https://api.bgm.tv/v0/users/" + m.UserID + "/collections?subject_type=2&limit=100&offset=0"
+	newAPI := "https://api.bgm.tv/v0/users/" + cfg.Bangumi.UserID + "/collections?subject_type=2&limit=100&offset=0"
 	//每七天更新一下
 	if time.Now().Unix()-bgm.TTL > 604800 {
 		if err := curlBGM(newAPI); err != nil {

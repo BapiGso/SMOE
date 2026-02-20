@@ -1,13 +1,11 @@
 package handler
 
 import (
-	"SMOE/moe/database"
-
+	"SMOE/moe/store"
 	"github.com/labstack/echo/v5"
 )
 
 func Manage(c *echo.Context) error {
-	qpu := &database.QPU{}
 	req := &struct {
 		Type       string `param:"type"       default:"post" `
 		CommStatus string `query:"commstatus" default:"approved" `
@@ -20,30 +18,26 @@ func Manage(c *echo.Context) error {
 	if err := c.Validate(req); err != nil {
 		return err
 	}
+	qpu := &store.QPU{}
 	switch req.Type {
 	case "post":
-		if err := database.DB.Select(&qpu.Contents, `
-		SELECT * FROM  smoe_contents
-		WHERE type='post' AND status=?
-		ORDER BY ROWID DESC
-		LIMIT ? OFFSET ?`, req.Status, 10+1, req.Page*10-10); err != nil {
+		posts, err := store.GetPostsByStatus(req.Status, 10, req.Page*10-10)
+		if err != nil {
 			return err
 		}
+		qpu.Contents = posts
 	case "page":
-		if err := database.DB.Select(&qpu.Contents, `
-		SELECT * FROM  smoe_contents 
-		WHERE type='page'
-		ORDER BY ROWID `); err != nil {
+		pages, err := store.GetAllPages()
+		if err != nil {
 			return err
 		}
+		qpu.Contents = pages
 	case "comment":
-		if err := database.DB.Select(&qpu.Comments, `
-		SELECT * FROM  smoe_comments
-		WHERE status=?
-		ORDER BY ROWID DESC
-		LIMIT ? OFFSET ?`, req.CommStatus, 10+1, req.Page*10-10); err != nil {
+		comments, err := store.GetAllComments(req.CommStatus, 10, req.Page*10-10)
+		if err != nil {
 			return err
 		}
+		qpu.Comments = comments
 	}
 
 	return c.Render(200, "manage.template", qpu)
