@@ -1,7 +1,7 @@
 {{template "header.template" (index .Contents 0).Title}}
 <body>
-    <header id="top">
-        <a class="logo-min" href="javascript:history.back()"></a>
+    <header class="page-header">
+        <button class="logo-min" onclick="history.back()" aria-label="返回"></button>
     </header>
 
     {{with index .Contents 0}}
@@ -12,7 +12,5 @@
     </article>
     {{end}}
 
-
     {{template "footer.template"}}
 </body>
-

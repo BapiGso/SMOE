@@ -1,22 +1,22 @@
 {{template "header.template" "时间线"}}
 <body>
-<header id="top">
-    <a class="logo-min" href="javascript:history.back()"></a>
+<header class="page-header">
+    <button class="logo-min" onclick="history.back()" aria-label="返回"></button>
 </header>
-    <article class="page timeline" >
+    <article class="page timeline">
         <section>
             {{$DateTmp := "2006年01月02日"}}
             {{range .Contents}}
                 {{if ne (slice .UnixFormat 0 4) (slice $DateTmp 0 4)}}
-                    <h2><strong>{{slice .UnixFormat 0 4}} 年 </strong></h2>
+                    <h2><strong>{{slice .UnixFormat 0 4}} 年</strong></h2>
                 {{end}}
-                    {{if ne (slice .UnixFormat 0 9) (slice $DateTmp 0 9)}}
-                        <span><b>&nbsp {{slice .UnixFormat 7 9 }} 月</b></span>
-                        {{$DateTmp = .UnixFormat}}
-                    {{end}}
-                    <ul>
-                        <li><a href="/archives/{{.Cid}}/">{{.Title}}</a></li>
-                    </ul>
+                {{if ne (slice .UnixFormat 0 9) (slice $DateTmp 0 9)}}
+                    <h3><b>{{slice .UnixFormat 7 9}} 月</b></h3>
+                    {{$DateTmp = .UnixFormat}}
+                {{end}}
+                <ul>
+                    <li><a href="/archives/{{.Cid}}/">{{.Title}}</a></li>
+                </ul>
             {{end}}
         </section>
     </article>

@@ -4,8 +4,7 @@
     <title>{{if .}}{{.}} | {{end}}晓梦</title>
     <meta charset="UTF-8">
     <meta content="yes" name="apple-mobile-web-app-capable"/>
-    <meta content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport">
-    <meta content="yes" name="apple-mobile-web-app-capable"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <meta content="notranslate" name="google"/>
     <meta content="遁隐缥缈霞云, 就此声销迹灭" name="description"/>
     <meta content="smoe.cc,晓梦,曉夢" name="keywords"/>

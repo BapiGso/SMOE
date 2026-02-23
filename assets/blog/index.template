@@ -30,39 +30,35 @@
                 </li>
             {{ end }}
         </ul>
-        <p>&copy; 2020 <a href="/">晓梦</a>. Power By <a rel="external nofollow" href="https://github.com/BapiGso/smoe">smoe</a>.
-            Theme <a href="https://github.com/LoeiFy/Diaspora">Diaspora</a>.
-        </p>
+        <footer>
+            <p>&copy; 2020 <a href="/">晓梦</a>. Power By <a rel="external nofollow" href="https://github.com/BapiGso/smoe">smoe</a>.
+            Theme <a href="https://github.com/LoeiFy/Diaspora">Diaspora</a>.</p>
+        </footer>
     </nav>
     <main>
-        <div id="screen">
+        <div class="hero">
             {{if .Posts}}
             {{with index .Posts 0}}
-            <div id="mark" x-init="new Parallax($el)">
-                <div class="layer" data-depth="0.4">
-                    <img id="cover" src="/usr/uploads/Background/Cover/1.webp" alt="illustration" x-init="vibrant($el)">
-                </div>
-            </div>
+            <figure class="parallax-bg" x-init="new Parallax($el)">
+                <img class="layer" id="cover" data-depth="0.4" src="/usr/uploads/Background/Cover/1.webp" alt="illustration" x-init="vibrant($el)">
+            </figure>
 
-            <!--todo blur glass-->
-            <div id="vibrant">
-                <svg viewBox="0 0 2880 1620" height="100%" preserveAspectRatio="xMaxYMax slice">
-                    <polygon opacity="0.7" points="2000,1620 0,1620 0,0 600,0 "/>
-                </svg>
-            </div>
+            <svg id="vibrant" viewBox="0 0 2880 1620" height="100%" preserveAspectRatio="xMaxYMax slice" aria-hidden="true">
+                <polygon opacity="0.7" points="2000,1620 0,1620 0,0 600,0 "/>
+            </svg>
 
-            <div id="header">
+            <header class="site-header">
                 <a class="logo" href="/"></a>
                 <button class="switchmenu" @click="window.scrollTo(0, 0);document.documentElement.classList.toggle('mu');">
-                    <svg  width="32" height="32" viewBox="0 0 100 100">
+                    <svg width="32" height="32" viewBox="0 0 100 100">
                         <path class="line1" d="M 20,29 H 80 C 80,29 94,28 94,66 94,78 91,81 85,81 79,81 75,75 75,75 L 25,25" stroke-dasharray="60 207" />
                         <path class="line2" d="M 20,50 H 80" stroke-dasharray="60 60" />
                         <path class="line3" d="M 20,71 H 80 C 80,71 94,71 94,33 94,22 91,18 85,18 79,18 75,25 75,25 L 25,75" stroke-dasharray="60 207" />
                     </svg>
                 </button>
-            </div>
+            </header>
 
-            <div id="post0">
+            <div class="hero-post">
                 <p>{{ .UnixToStr }}</p>
                 <h2><a @click.prevent="ajaxPost($el.href)" class="posttitle" href="/archives/{{ .Cid }}">{{ .Title }}</a></h2>
                 <div class="summary"><p>{{ .MDSub }}...</p></div>
@@ -70,13 +66,13 @@
             {{end}}
             {{end}}
         </div>
-        <div id="primary">
+        <section id="primary">
             {{if gt (len .Posts) 1}}
             {{range (slice .Posts 1)}}
                 {{template "post-card" .}}
             {{end}}
             {{end}}
-        </div>
+        </section>
         <button x-show="hasMore" x-init="hasMore={{.HasMore}}" class="more" @click.prevent="ajaxNextPage()">加载更多</button>
     </main>
     {{template "footer.template"}}

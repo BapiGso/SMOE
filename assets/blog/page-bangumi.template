@@ -1,7 +1,7 @@
 {{template "header.template" "追番"}}
 <body>
-<header id="top">
-    <a class="logo-min" href="javascript:history.back()"></a>
+<header class="page-header">
+    <button class="logo-min" onclick="history.back()" aria-label="返回"></button>
 </header>
 <style>
 .bangumi {
@@ -27,7 +27,13 @@
     margin: 0;
     padding: 0;
     border: 0;
+    border-radius: 4px;
     transform: translate3d(0, 0, 0);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.bgm-card:hover {
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 0 8px 24px rgba(100, 0, 200, 0.3);
 }
 .bgm-card a {
     display: block;
@@ -38,6 +44,11 @@
     aspect-ratio: 5 / 7;
     object-fit: cover;
     display: block;
+    filter: saturate(0.85);
+    transition: filter 0.3s ease;
+}
+.bgm-card:hover img {
+    filter: saturate(1.2);
 }
 .bgm-card .hover {
     position: absolute;
@@ -45,9 +56,13 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, .69);
+    background: linear-gradient(
+        160deg,
+        rgba(50, 0, 70, 0.9) 0%,
+        rgba(15, 0, 50, 0.94) 100%
+    );
     opacity: 0;
-    transition: opacity .3s;
+    transition: opacity 0.25s ease;
     z-index: 2;
     display: flex;
     flex-direction: column;
@@ -58,6 +73,22 @@
 .bgm-card:hover .hover {
     opacity: 1;
 }
+/* 扫光线 */
+.bgm-card::before {
+    content: '';
+    position: absolute;
+    top: -100%;
+    left: 0;
+    right: 0;
+    height: 45%;
+    background: linear-gradient(180deg, rgba(255,255,255,0.1) 0%, transparent 100%);
+    transition: top 0.45s ease;
+    z-index: 3;
+    pointer-events: none;
+}
+.bgm-card:hover::before {
+    top: 120%;
+}
 .bgm-card .hover strong {
     color: #fff;
     font-size: 14px;
@@ -67,20 +98,34 @@
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
+    transform: translateY(6px);
+    opacity: 0;
+    transition: transform 0.3s ease 0.05s, opacity 0.25s ease 0.05s;
+}
+.bgm-card:hover .hover strong {
+    transform: translateY(0);
+    opacity: 1;
 }
 .bgm-card .hover span {
-    color: rgba(255,255,255,.75);
+    color: rgba(220, 180, 255, 0.85);
     font-size: 12px;
     line-height: 1.6;
     display: -webkit-box;
     -webkit-line-clamp: 6;
     -webkit-box-orient: vertical;
     overflow: hidden;
+    transform: translateY(6px);
+    opacity: 0;
+    transition: transform 0.3s ease 0.1s, opacity 0.25s ease 0.1s;
+}
+.bgm-card:hover .hover span {
+    transform: translateY(0);
+    opacity: 1;
 }
 </style>
 
-<article class="page bangumi">
-    <section>
+<main class="page bangumi">
+    <section aria-label="看过">
     <h2><strong>看过</strong></h2>
     <ul class="bgm-grid">
         {{range .Data}}
@@ -97,6 +142,8 @@
         {{end}}
         {{end}}
     </ul>
+    </section>
+    <section aria-label="想看">
     <h2><strong>想看</strong></h2>
     <ul class="bgm-grid">
         {{range .Data}}
@@ -114,6 +161,6 @@
         {{end}}
     </ul>
     </section>
-</article>
+</main>
 {{template "footer.template"}}
 </body>
