@@ -24,6 +24,14 @@ const (
 
 var fileMutexes sync.Map
 
+func parseRFC3339(s string) int64 {
+	t, err := time.Parse(time.RFC3339, s)
+	if err != nil {
+		return 0
+	}
+	return t.Unix()
+}
+
 func getFileMutex(path string) *sync.Mutex {
 	v, _ := fileMutexes.LoadOrStore(path, &sync.Mutex{})
 	return v.(*sync.Mutex)
@@ -243,19 +251,9 @@ func IncrementViews(cidStr string) error {
 }
 
 // SavePost creates (POST) or updates (PUT) a post file.
-func SavePost(method string, cid int, title, slug, text, typ, status, cover, music string, created int64) (int, error) {
+func SavePost(method string, cid int, title, text, status, cover, music string) (int, error) {
 	if method == "POST" {
-		maxCid := 0
-		walkPosts(func(c int, _ FrontMatter, _ string) {
-			if c > maxCid {
-				maxCid = c
-			}
-		})
-		cid = maxCid + 11
-		if slug == "" && typ == "post" {
-			slug = strconv.Itoa(cid)
-		}
-		created = time.Now().Unix()
+		cid = int(time.Now().Unix())
 	}
 
 	path := filepath.Join(postsDir, strconv.Itoa(cid)+".md")
@@ -271,8 +269,6 @@ func SavePost(method string, cid int, title, slug, text, typ, status, cover, mus
 		}
 	}
 	fm.Title = title
-	fm.Slug = slug
-	fm.Created = time.Unix(created, 0).Format(time.RFC3339)
 	fm.Cover = cover
 	fm.Music = music
 	fm.Status = status

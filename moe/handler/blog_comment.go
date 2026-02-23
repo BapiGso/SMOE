@@ -2,12 +2,13 @@ package handler
 
 import (
 	"SMOE/moe/store"
+	"strings"
+
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/labstack/echo/v5"
-	"strings"
 )
 
-// SubmitArticleComment todo 工作量证明
+// SubmitArticleComment
 func SubmitArticleComment(c *echo.Context) error {
 	req := &struct {
 		Parent   uint   `xml:"parent"   form:"parent" validate:""`

@@ -22,41 +22,44 @@
 {{end}}
 {{template "header.template"}}
 <body x-data="smoe">
-    <nav>
+<details id="nav" @toggle="if (open) scrollTo(0, 0)">
+    <summary class="switchmenu">
+
+        <a class="logo" href="/"></a>
+
+        <svg class="menu-btn" width="32" height="32" viewBox="0 0 100 100">
+            <path class="line1" d="M 20,29 H 80 C 80,29 94,28 94,66 94,78 91,81 85,81 79,81 75,75 75,75 L 25,25" stroke-dasharray="60 207" />
+            <path class="line2" d="M 20,50 H 80" stroke-dasharray="60 60" />
+            <path class="line3" d="M 20,71 H 80 C 80,71 94,71 94,33 94,22 91,18 85,18 79,18 75,25 75,25 L 25,75" stroke-dasharray="60 207" />
+        </svg>
+    </summary>
+
+    <div class="nav-content">
         <ul class="menu">
             {{ range .Pages }}
-                <li id="{{.Slug}}">
-                    <a @click.prevent="ajaxPost($el.href)" href="/{{.Slug}}" class="pagelist">{{.Title}}</a>
-                </li>
+            <li id="{{.Slug}}">
+                <a @click.prevent="ajaxPost($el.href)" href="/{{.Slug}}" class="pagelist">{{.Title}}</a>
+            </li>
             {{ end }}
         </ul>
-        <footer>
-            <p>&copy; 2020 <a href="/">晓梦</a>. Power By <a rel="external nofollow" href="https://github.com/BapiGso/smoe">smoe</a>.
-            Theme <a href="https://github.com/LoeiFy/Diaspora">Diaspora</a>.</p>
-        </footer>
-    </nav>
+        <p>© 2020 <a href="/">晓梦</a>. Power By <a rel="external nofollow" href="https://github.com/BapiGso/smoe">smoe</a>.
+            Theme <a href="https://github.com/LoeiFy/Diaspora">Diaspora</a>.
+        </p>
+    </div>
+</details>
     <main>
         <div class="hero">
             {{if .Posts}}
             {{with index .Posts 0}}
-            <figure class="parallax-bg" x-init="new Parallax($el)">
-                <img class="layer" id="cover" data-depth="0.4" src="/usr/uploads/Background/Cover/1.webp" alt="illustration" x-init="vibrant($el)">
+            <figure class="parallax-bg" x-init="parallax($el)">
+                <img id="cover" src="/usr/uploads/Background/Cover/1.webp" alt="illustration">
             </figure>
 
-            <svg id="vibrant" viewBox="0 0 2880 1620" height="100%" preserveAspectRatio="xMaxYMax slice" aria-hidden="true">
-                <polygon opacity="0.7" points="2000,1620 0,1620 0,0 600,0 "/>
+            <svg id="vibrant" height="100%" preserveAspectRatio="xMaxYMax slice" aria-hidden="true">
+                <polygon points="2000,1600 0,1000 0,0 230,0 " fill="#882345B3"></polygon>
             </svg>
 
-            <header class="site-header">
-                <a class="logo" href="/"></a>
-                <button class="switchmenu" @click="window.scrollTo(0, 0);document.documentElement.classList.toggle('mu');">
-                    <svg width="32" height="32" viewBox="0 0 100 100">
-                        <path class="line1" d="M 20,29 H 80 C 80,29 94,28 94,66 94,78 91,81 85,81 79,81 75,75 75,75 L 25,25" stroke-dasharray="60 207" />
-                        <path class="line2" d="M 20,50 H 80" stroke-dasharray="60 60" />
-                        <path class="line3" d="M 20,71 H 80 C 80,71 94,71 94,33 94,22 91,18 85,18 79,18 75,25 75,25 L 25,75" stroke-dasharray="60 207" />
-                    </svg>
-                </button>
-            </header>
+
 
             <div class="hero-post">
                 <p>{{ .UnixToStr }}</p>

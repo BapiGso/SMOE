@@ -3,7 +3,6 @@ package store
 import (
 	"os"
 	"strings"
-	"time"
 
 	"gopkg.in/yaml.v3"
 )
@@ -23,8 +22,6 @@ type FMComment struct {
 // FrontMatter is the YAML header of a .md file.
 type FrontMatter struct {
 	Title    string      `yaml:"title"`
-	Slug     string      `yaml:"slug"`
-	Created  string      `yaml:"created"` // RFC3339
 	Cover    string      `yaml:"cover,omitempty"`
 	Music    string      `yaml:"music,omitempty"`
 	Views    uint        `yaml:"views"`
@@ -76,6 +73,7 @@ func WriteFile(path string, fm FrontMatter, body string) error {
 }
 
 // ToContents converts a FrontMatter + body into a template-ready Contents value.
+// cid is the Unix timestamp derived from the filename.
 func ToContents(fm FrontMatter, body, contentType string, cid int) Contents {
 	status := fm.Status
 	if status == "" {
@@ -84,8 +82,7 @@ func ToContents(fm FrontMatter, body, contentType string, cid int) Contents {
 	return Contents{
 		Cid:       cid,
 		Title:     fm.Title,
-		Slug:      fm.Slug,
-		Created:   parseRFC3339(fm.Created),
+		Created:   int64(cid),
 		Text:      body,
 		Type:      contentType,
 		Status:    status,
@@ -94,12 +91,4 @@ func ToContents(fm FrontMatter, body, contentType string, cid int) Contents {
 		CoverList: fm.Cover,
 		MusicList: fm.Music,
 	}
-}
-
-func parseRFC3339(s string) int64 {
-	t, err := time.Parse(time.RFC3339, s)
-	if err != nil {
-		return 0
-	}
-	return t.Unix()
 }
