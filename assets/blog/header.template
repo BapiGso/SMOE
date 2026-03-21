@@ -3,18 +3,16 @@
 <head>
     <title>{{if .}}{{.}} | {{end}}晓梦</title>
     <meta charset="UTF-8">
-    <meta content="yes" name="apple-mobile-web-app-capable"/>
+    <meta content="yes" name="mobile-web-app-capable"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <meta content="notranslate" name="google"/>
     <meta content="遁隐缥缈霞云, 就此声销迹灭" name="description"/>
     <meta content="smoe.cc,晓梦,曉夢" name="keywords"/>
     <meta name="theme-color" content="#9370DB">
+    <link rel="stylesheet" href="/assets/blog/css/backup.css">
     <link rel="stylesheet" href="/assets/blog/css/Diaspora.css">
-{{/*    <style>*/}}
-{{/*        {{template "Diaspora.css"}}*/}}
-{{/*    </style>*/}}
+    <link rel="stylesheet" href="/assets/blog/css/github-markdown.css">
     <link rel="icon" type="image/png" href="/assets/root/favicon.ico">
-{{/*    <link rel="alternate" type="application/rss+xml" title="晓梦 &raquo; RSS 2.0" href="/feed/" />*/}}
-{{/*    <link rel="alternate" type="application/rdf+xml" title="晓梦 &raquo; RSS 1.0" href="/feed/rss/" />*/}}
-{{/*    <link rel="alternate" type="application/atom+xml" title="晓梦 &raquo; ATOM 1.0" href="/feed/atom/" />*/}}
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="alternate" type="application/rss+xml" title="晓梦 &raquo; RSS 2.0" href="/feed" />
 </head>

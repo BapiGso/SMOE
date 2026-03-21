@@ -1,162 +1,245 @@
 {{template "header.template" "追番"}}
-<body>
+<body x-data="smoe">
 
 <style>
+.bangumi {
+    & > section {
+        width: 92%;
+        max-width: 1100px;
+        margin-bottom: 0;
+        text-align: left;
 
-.bangumi h2 {
-    margin: 1.5em 0 1em;
-}
-.bgm-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-    gap: 6px;
-    list-style: none;
-    margin: 0;
-    padding: 0;
-}
-.bgm-card {
-    position: relative;
-    display: block;
-    overflow: hidden;
-    margin: 0;
-    padding: 0;
-    border: 0;
-    border-radius: 4px;
-    transform: translate3d(0, 0, 0);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-.bgm-card:hover {
-    transform: translateY(-4px) scale(1.02);
-    box-shadow: 0 8px 24px rgba(100, 0, 200, 0.3);
-}
-.bgm-card a {
-    display: block;
-    text-decoration: none;
-}
-.bgm-card img {
-    width: 100%;
-    aspect-ratio: 5 / 7;
-    object-fit: cover;
-    display: block;
-    filter: saturate(0.85);
-    transition: filter 0.3s ease;
-}
-.bgm-card:hover img {
-    filter: saturate(1.2);
-}
-.bgm-card .hover {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(
-        160deg,
-        rgba(50, 0, 70, 0.9) 0%,
-        rgba(15, 0, 50, 0.94) 100%
-    );
-    opacity: 0;
-    transition: opacity 0.25s ease;
-    z-index: 2;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    padding: 14px;
-    box-sizing: border-box;
-}
-.bgm-card:hover .hover {
-    opacity: 1;
-}
-/* 扫光线 */
-.bgm-card::before {
-    content: '';
-    position: absolute;
-    top: -100%;
-    left: 0;
-    right: 0;
-    height: 45%;
-    background: linear-gradient(180deg, rgba(255,255,255,0.1) 0%, transparent 100%);
-    transition: top 0.45s ease;
-    z-index: 3;
-    pointer-events: none;
-}
-.bgm-card:hover::before {
-    top: 120%;
-}
-.bgm-card .hover strong {
-    color: #fff;
-    font-size: 14px;
-    line-height: 1.5;
-    margin-bottom: 8px;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    transform: translateY(6px);
-    opacity: 0;
-    transition: transform 0.3s ease 0.05s, opacity 0.25s ease 0.05s;
-}
-.bgm-card:hover .hover strong {
-    transform: translateY(0);
-    opacity: 1;
-}
-.bgm-card .hover span {
-    color: rgba(220, 180, 255, 0.85);
-    font-size: 12px;
-    line-height: 1.6;
-    display: -webkit-box;
-    -webkit-line-clamp: 6;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    transform: translateY(6px);
-    opacity: 0;
-    transition: transform 0.3s ease 0.1s, opacity 0.25s ease 0.1s;
-}
-.bgm-card:hover .hover span {
-    transform: translateY(0);
-    opacity: 1;
+        & > * {
+            margin-top: 0;
+        }
+    }
+
+    & h2 {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        font-weight: 600;
+        letter-spacing: 3px;
+        color: var(--c-muted);
+        margin: 52px 0 22px;
+    }
+
+    & ul {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px 12px;
+        margin: 0;
+        padding: 0;
+    }
+
+    & li {
+        width: calc((100% - 48px) / 5);
+        list-style: none;
+        transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+
+        &:hover {
+            transform: translateY(-4px);
+
+            & figure {
+                border-color: rgba(132, 0, 255, 0.2);
+                box-shadow:
+                    0 0 15px rgba(132, 0, 255, 0.08),
+                    0 8px 20px rgba(0, 0, 0, 0.1);
+            }
+
+            & img {
+                transform: scale(1.05);
+            }
+
+            & figcaption {
+                transform: translateY(0);
+            }
+
+            & strong {
+                color: var(--c-text);
+            }
+        }
+
+        & a {
+            display: block;
+            text-decoration: none;
+        }
+
+        & figure {
+            position: relative;
+            overflow: hidden;
+            margin: 0;
+            border: 1px solid var(--c-border);
+            transition: border-color 0.4s ease, box-shadow 0.4s ease;
+        }
+
+        & img {
+            width: 100%;
+            aspect-ratio: 3 / 4;
+            object-fit: cover;
+            display: block;
+            transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        & data {
+            position: absolute;
+            top: 0;
+            right: 0;
+            z-index: 3;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            padding: 3px 7px;
+            font-size: 11px;
+            font-weight: 600;
+            color: #ffd700;
+            line-height: 1.3;
+        }
+
+        & figcaption {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 65%;
+            z-index: 2;
+            padding: 0 10px 10px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            gap: 4px;
+            background: linear-gradient(transparent 0%, rgba(6, 3, 20, 0.95) 35%);
+            transform: translateY(100%);
+            transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+
+            & em {
+                font-style: normal;
+                font-size: 11px;
+                color: rgba(200, 180, 255, 0.55);
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+
+            & small {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 4px;
+                font-size: 11px;
+                color: rgba(200, 180, 255, 0.7);
+
+                & span {
+                    background: rgba(132, 0, 255, 0.25);
+                    padding: 1px 5px;
+                }
+            }
+
+            & p {
+                font-size: 11px;
+                line-height: 1.5;
+                color: rgba(200, 190, 230, 0.5);
+                display: -webkit-box;
+                -webkit-line-clamp: 3;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+                margin: 0;
+            }
+        }
+
+        & strong {
+            display: block;
+            margin-top: 8px;
+            font-size: 12.5px;
+            font-weight: normal;
+            line-height: 1.4;
+            color: var(--c-subtle);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            transition: color 0.3s ease;
+        }
+    }
+
+    @media (hover: none) {
+        & li strong {
+            color: var(--c-muted);
+            white-space: normal;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+    }
+
+    @media (max-width: 600px) {
+        & li {
+            width: calc((100% - 16px) / 3);
+        }
+        & ul {
+            gap: 16px 8px;
+        }
+        & > section {
+            width: 95%;
+        }
+        & h2 {
+            margin-top: 36px;
+        }
+    }
 }
 </style>
 
 <article class="page bangumi">
     <header class="page-header">
-        <button class="logo-min" onclick="history.back()" aria-label="返回"></button>
+        <button data-action="back" @click="goBack()" aria-label="返回"></button>
     </header>
     <section aria-label="看过">
-    <h2><strong>看过</strong></h2>
-    <ul class="bgm-grid">
-        {{range .Data}}
-        {{if ne .Type 1}}
-        <li class="bgm-card">
-            <a href="//bgm.tv/subject/{{.SubjectID}}" target="_blank" rel="noopener">
-                <div class="hover">
+        <h2>看过</h2>
+        <ul>
+            {{range .Data}}{{if ne .Type 1}}
+            <li>
+                <a href="//bgm.tv/subject/{{.SubjectID}}" target="_blank" rel="noopener">
+                    <figure>
+                        {{if .Subject.Score}}<data>{{printf "%.1f" .Subject.Score}}</data>{{end}}
+                        <img src="{{with .Subject.Images}}{{.Common}}{{end}}" alt="{{.Subject.Name}}" loading="lazy">
+                        <figcaption>
+                            {{if and .Subject.NameCn (ne .Subject.NameCn .Subject.Name)}}<em>{{.Subject.Name}}</em>{{end}}
+                            <small>
+                                {{if .Subject.Score}}<span>{{printf "%.1f" .Subject.Score}}</span>{{end}}
+                                {{if .Subject.Eps}}<span>{{.Subject.Eps}}话</span>{{end}}
+                                {{if .Subject.Date}}<span>{{.Subject.Date}}</span>{{end}}
+                            </small>
+                            {{if .Subject.ShortSummary}}<p>{{.Subject.ShortSummary}}</p>{{end}}
+                        </figcaption>
+                    </figure>
                     <strong>{{if .Subject.NameCn}}{{.Subject.NameCn}}{{else}}{{.Subject.Name}}{{end}}</strong>
-                    <span>{{.Subject.ShortSummary}}</span>
-                </div>
-                <img src="{{with .Subject.Images}}{{.Common}}{{end}}" alt="{{.Subject.Name}}" loading="lazy">
-            </a>
-        </li>
-        {{end}}
-        {{end}}
-    </ul>
+                </a>
+            </li>
+            {{end}}{{end}}
+        </ul>
     </section>
     <section aria-label="想看">
-    <h2><strong>想看</strong></h2>
-    <ul class="bgm-grid">
-        {{range .Data}}
-        {{if eq .Type 1}}
-        <li class="bgm-card">
-            <a href="//bgm.tv/subject/{{.SubjectID}}" target="_blank" rel="noopener">
-                <div class="hover">
+        <h2>想看</h2>
+        <ul>
+            {{range .Data}}{{if eq .Type 1}}
+            <li>
+                <a href="//bgm.tv/subject/{{.SubjectID}}" target="_blank" rel="noopener">
+                    <figure>
+                        {{if .Subject.Score}}<data>{{printf "%.1f" .Subject.Score}}</data>{{end}}
+                        <img src="{{with .Subject.Images}}{{.Common}}{{end}}" alt="{{.Subject.Name}}" loading="lazy">
+                        <figcaption>
+                            {{if and .Subject.NameCn (ne .Subject.NameCn .Subject.Name)}}<em>{{.Subject.Name}}</em>{{end}}
+                            <small>
+                                {{if .Subject.Score}}<span>{{printf "%.1f" .Subject.Score}}</span>{{end}}
+                                {{if .Subject.Eps}}<span>{{.Subject.Eps}}话</span>{{end}}
+                                {{if .Subject.Date}}<span>{{.Subject.Date}}</span>{{end}}
+                            </small>
+                            {{if .Subject.ShortSummary}}<p>{{.Subject.ShortSummary}}</p>{{end}}
+                        </figcaption>
+                    </figure>
                     <strong>{{if .Subject.NameCn}}{{.Subject.NameCn}}{{else}}{{.Subject.Name}}{{end}}</strong>
-                    <span>{{.Subject.ShortSummary}}</span>
-                </div>
-                <img src="{{with .Subject.Images}}{{.Common}}{{end}}" alt="{{.Subject.Name}}" loading="lazy">
-            </a>
-        </li>
-        {{end}}
-        {{end}}
-    </ul>
+                </a>
+            </li>
+            {{end}}{{end}}
+        </ul>
     </section>
 </article>
 {{template "footer.template"}}

@@ -34,13 +34,28 @@ func (c Contents) MD2HTML() string {
 	return buf.String()
 }
 
-// MDSub 截取前70个字符串作为摘要
+// MDSub 截取前70个字符作为摘要（Markdown→HTML→纯文本）
 func (c Contents) MDSub() string {
-	length := len([]rune(c.Text))
-	if length <= 70 {
-		return c.Text
+	html := c.MD2HTML()
+	// strip HTML tags
+	var b strings.Builder
+	inTag := false
+	for _, r := range html {
+		switch {
+		case r == '<':
+			inTag = true
+		case r == '>':
+			inTag = false
+		case !inTag:
+			b.WriteRune(r)
+		}
 	}
-	return string([]rune(c.Text)[:70])
+	plain := strings.Join(strings.Fields(b.String()), " ")
+	runes := []rune(plain)
+	if len(runes) <= 70 {
+		return plain
+	}
+	return string(runes[:70])
 }
 
 // MDCount 计算文章字数

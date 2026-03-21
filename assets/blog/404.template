@@ -1,15 +1,16 @@
 {{template "header.template" "页面未找到"}}
-<body class="">
-    <header id="top">
-        <nav class="components">
-            <a class="logo-min" href="javascript:history.back()"></a>
-        </nav>
-    </header>
-    <article class="page">
-        <div class="content">
+<body x-data="smoe">
+    <article >
+        <header class="page-header">
+            <button data-action="back" @click="goBack()" aria-label="返回"></button>
+        </header>
+        <section>
             <h1>404 Not Found</h1>
             <p>The page you were looking for is no longer available.</p>
             {{ with .}}<p>{{.}}</p>{{ end }}
-        </div>
+        </section>
     </article>
+
+
+{{template "footer.template"}}
 </body>

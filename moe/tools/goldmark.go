@@ -2,9 +2,7 @@ package tools
 
 import (
 	latex "github.com/aziis98/goldmark-latex"
-	mathjax "github.com/litao91/goldmark-mathjax"
 	figure "github.com/mangoumbrella/goldmark-figure"
-	treeblood "github.com/wyatt915/goldmark-treeblood"
 	"github.com/yuin/goldmark"
 	highlighting "github.com/yuin/goldmark-highlighting"
 	"github.com/yuin/goldmark/extension"
@@ -20,15 +18,16 @@ var GoldMark = goldmark.New(
 		extension.Linkify,
 		figure.Figure,
 		&frontmatter.Extender{},
-		mathjax.MathJax,
 		&mermaid.Extender{
-			MermaidURL: "/assets/blog/js/mermaid.js", //自定义js静态资源路径
+			MermaidURL: "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js",
 		},
-		latex.NewLatex(),
+		latex.NewLatex(
+			latex.WithOutputInlineDelim(`\(`, `\)`),
+			latex.WithOutputBlockDelim(`\[`, `\]`),
+		),
 		highlighting.NewHighlighting(
 			highlighting.WithStyle("github"),
 		),
-		treeblood.MathML(),
 	),
 
 	goldmark.WithParserOptions(

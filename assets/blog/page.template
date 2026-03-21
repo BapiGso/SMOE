@@ -2,10 +2,10 @@
 <body x-data="smoe">
     <article data-id="{{(index .Contents 0).Cid}}">
         <header class="page-header">
-            <button class="logo-min" @click="goBack()" aria-label="返回"></button>
+            <button data-action="back" @click="goBack()" aria-label="返回"></button>
         </header>
         {{with index .Contents 0}}
-        <section>
+        <section class="markdown-body">
             {{.MD2HTML}}
         </section>
         {{end}}

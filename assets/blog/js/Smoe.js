@@ -12,7 +12,7 @@ document.addEventListener('alpine:init', () => {
             requestAnimationFrame(() => requestAnimationFrame(() => {
                 document.documentElement.className = '';
                 document.documentElement.style.overflow = 'hidden';
-                preview.style.transform = 'translateX(0)';
+                preview.style.transform = 'unset';
             }));
         };
 
@@ -28,6 +28,46 @@ document.addEventListener('alpine:init', () => {
                 const match = window.location.pathname.match(/\/page\/(\d+)/);
                 return match ? parseInt(match[1]) + 1 : 2;
             })(),
+            darkMode: localStorage.getItem('theme') === 'dark',
+
+            lightbox(e) {
+                if (e.target.tagName !== 'IMG' || e.target.closest('a, dialog')) return;
+                const dialog = e.currentTarget.querySelector('dialog');
+                dialog.querySelector('img').src = e.target.src;
+                dialog.showModal();
+            },
+
+            async likePost(el) {
+                if ('liked' in el.dataset) return;
+                const article = el.closest('article');
+                const cid = article.dataset.id;
+                const res = await fetch(`/archives/${cid}/like`, { method: 'POST' });
+                const data = await res.json();
+                if (data.liked) {
+                    el.dataset.liked = '';
+                    localStorage.setItem('liked:' + cid, '1');
+                    const num = article.querySelector('[data-like-count]');
+                    if (num) num.textContent = parseInt(num.textContent) + 1;
+                }
+            },
+
+            toggleDark(e) {
+                const btn = e.currentTarget;
+                const rect = btn.getBoundingClientRect();
+                const x = rect.left + rect.width / 2;
+                const y = rect.top + rect.height / 2;
+                document.documentElement.style.setProperty('--tx', x + 'px');
+                document.documentElement.style.setProperty('--ty', y + 'px');
+
+                const apply = () => {
+                    this.darkMode = !this.darkMode;
+                    document.documentElement.dataset.theme = this.darkMode ? 'dark' : '';
+                    localStorage.setItem('theme', this.darkMode ? 'dark' : 'light');
+                };
+
+                if (!document.startViewTransition) return apply();
+                document.startViewTransition(apply);
+            },
 
             goBack() {
                 if (preview.parentElement) {
@@ -59,6 +99,7 @@ document.addEventListener('alpine:init', () => {
             },
 
             init() {
+                if (this.darkMode) document.documentElement.dataset.theme = 'dark';
                 window.$ = (selector) => document.querySelector(selector);
                 window.onpopstate = (e) => {
                     if (!e.state) return (location.href = location.origin);

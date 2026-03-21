@@ -1,30 +1,43 @@
 {{template "header.template" (index .Contents 0).Title}}
 <body x-data="smoe">
-
-
 <article data-id="{{(index .Contents 0).Cid}}">
-    <header class="page-header">
-        <button class="logo-min" @click="goBack()"></button>
-        <button class="play" title="播放/暂停" x-bind="bgmPlayer.Button">
+    <header>
+        <button data-action="back" @click="goBack()"></button>
+        <button data-action="play" title="播放/暂停" x-bind="bgmPlayer.Button">
             <svg viewBox="0 0 50 50">
                 <path :d="bgmPlayer.playing?'M0 1 0 49 12 49 12 1Z':'M0 1 0 49 22.5 37 22.5 12Z'" style="transition: all .5s ease;"/>
                 <path :d="bgmPlayer.playing?'M35 0 35 50 23 50 23 0Z':'M44 24 44 24 22 37 22 12Z'" style="transition: all .5s ease;"/>
             </svg>
         </button>
-        <h3 class="subtitle">{{(index .Contents 0).Title}}</h3>
-        <button class="like"  @click="alert('Function need updated')"></button>
-        <button class="night" @click="alert('Function need updated')"></button>
+        <h3>{{(index .Contents 0).Title}}</h3>
+        <button data-action="like"
+                x-init="if(localStorage.getItem('liked:'+$el.closest('article').dataset.id)==='1')$el.dataset.liked=''"
+                @click="likePost($el)">
+            <svg viewBox="0 0 24 24">
+                <path d="M2 9.137C2 14 6.02 16.591 8.962 18.911 10 19.729 11 20.5 12 20.5s2-.77 3.038-1.59C17.981 16.592 22 14 22 9.138c0-4.863-5.5-8.312-10-3.636C7.5.825 2 4.274 2 9.137z" stroke-width="1.5"/>
+            </svg>
+        </button>
+        <button data-action="theme" @click="toggleDark($event)" :title="darkMode ? '浅色模式' : '深色模式'">
+            <svg viewBox="0 0 24 24">
+                <circle cx="12" cy="12" fill="currentColor" style="transition:all .5s ease" :r="darkMode?5:10"/>
+                <circle fill="var(--c-bg)" style="transition:all .5s ease" r="8" :cx="darkMode?28:17" :cy="darkMode?-2:5"/>
+                <g stroke="currentColor" stroke-width="2" stroke-linecap="round" style="transition:all .5s ease;transform-origin:center" :style="{opacity:darkMode?1:0,transform:darkMode?'rotate(0)':'rotate(-45deg)'}">
+                    <line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+                    <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+                </g>
+            </svg>
+        </button>
     </header>
     {{with index .Contents 0}}
-        <h1 class="title">{{.Title}}</h1>
-        <div class="post-meta">
-            <span>{{.UnixToStr}}</span>
-            <span>阅读 <span id="readNum">{{.Views}}</span></span>
-            <span>字数 <span id="wordNum">{{.MDCount}}</span></span>
-            <span>喜欢 <span class="count likeNum">{{.Likes}}</span></span>
-        </div>
-        <section>
+        <h1>{{.Title}}</h1>
+        <span>{{.UnixToStr}} · 阅读 {{.Views}} · 字数 {{.MDCount}} · 喜欢 <span data-like-count>{{.Likes}}</span></span>
+        <section class="markdown-body" @click="lightbox($event)">
             {{.MD2HTML}}
+            <dialog @click="if($event.target===$el)$el.close()">
+                <img>
+            </dialog>
         </section>
         <audio preload="auto" src="{{.MusicList}}" x-bind="bgmPlayer"></audio>
     {{end}}

@@ -3,6 +3,7 @@ package handler
 import (
 	"SMOE/moe/store"
 	"strings"
+	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/labstack/echo/v5"
@@ -10,6 +11,13 @@ import (
 
 // SubmitArticleComment
 func SubmitArticleComment(c *echo.Context) error {
+	rateKey := "comment:" + c.RealIP()
+	if v, ok := rateMap.Load(rateKey); ok {
+		if time.Since(v.(time.Time)) < 60*time.Second {
+			return echo.NewHTTPError(429, "评论太频繁，请稍后再试")
+		}
+	}
+
 	req := &struct {
 		Parent   uint   `xml:"parent"   form:"parent" validate:""`
 		Cid      uint   `xml:"cid"      form:"cid"    validate:"required"`
@@ -34,5 +42,6 @@ func SubmitArticleComment(c *echo.Context) error {
 	if err := store.AddComment(c.Param("cid"), req.Author, req.Mail, req.Url, req.Text, req.Parent, req.AuthorId); err != nil {
 		return err
 	}
+	rateMap.Store(rateKey, time.Now())
 	return c.JSON(200, nil)
 }

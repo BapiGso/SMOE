@@ -2,6 +2,9 @@ package handler
 
 import (
 	"SMOE/moe/store"
+	"fmt"
+	"strings"
+
 	"github.com/labstack/echo/v5"
 )
 
@@ -19,9 +22,20 @@ func Post(c *echo.Context) error {
 	if err != nil {
 		return echo.ErrNotFound
 	}
+	if strings.Contains(c.Request().Header.Get(echo.HeaderAccept), "text/markdown") {
+		return renderMarkdown(c, content)
+	}
 	qpu := &store.QPU{
 		Contents: []store.Contents{content},
 		Comments: comments,
 	}
 	return c.Render(200, "post.template", qpu)
+}
+
+func renderMarkdown(c *echo.Context, content store.Contents) error {
+	md := fmt.Sprintf("# %s\n\n%s", content.Title, content.Text)
+	tokens := len(md) / 4 // rough estimate
+	c.Response().Header().Set(echo.HeaderContentType, "text/markdown; charset=utf-8")
+	c.Response().Header().Set("X-Markdown-Tokens", fmt.Sprintf("%d", tokens))
+	return c.String(200, md)
 }

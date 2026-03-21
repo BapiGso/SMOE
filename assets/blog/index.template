@@ -26,10 +26,8 @@
     <main>
         <details x-ref="nav" @toggle="if (open) scrollTo(0, 0)">
             <summary>
-
-                <a class="logo" href="/"></a>
-
-                <svg width="32" height="32" viewBox="0 0 100 100">
+                <span data-action="logo"></span>
+                <svg data-action="menu" width="32" height="32" viewBox="0 0 100 100">
                     <path d="M 20,29 H 80 C 80,29 94,28 94,66 94,78 91,81 85,81 79,81 75,75 75,75 L 25,25" stroke-dasharray="60 207" />
                     <path d="M 20,50 H 80" stroke-dasharray="60 60" />
                     <path d="M 20,71 H 80 C 80,71 94,71 94,33 94,22 91,18 85,18 79,18 75,25 75,25 L 25,75" stroke-dasharray="60 207" />

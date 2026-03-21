@@ -10,9 +10,7 @@ require (
 	github.com/labstack/echo-jwt/v5 v5.0.1
 	github.com/labstack/echo/v5 v5.0.4
 	github.com/labstack/gommon v0.4.2
-	github.com/litao91/goldmark-mathjax v0.0.0-20210217064022-a43cf739a50f
 	github.com/mangoumbrella/goldmark-figure v1.4.0
-	github.com/wyatt915/goldmark-treeblood v0.0.1
 	github.com/yuin/goldmark v1.7.17
 	github.com/yuin/goldmark-highlighting v0.0.0-20220208100518-594be1970594
 	go.abhg.dev/goldmark/frontmatter v0.3.0
@@ -34,7 +32,6 @@ require (
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasttemplate v1.2.2 // indirect
-	github.com/wyatt915/treeblood v0.1.16 // indirect
 	golang.org/x/sys v0.42.0 // indirect
 	golang.org/x/text v0.35.0 // indirect
 	golang.org/x/time v0.15.0 // indirect

@@ -250,6 +250,26 @@ func IncrementViews(cidStr string) error {
 	return WriteFile(path, fm, body)
 }
 
+// IncrementLikes increments the like counter of a post file.
+func IncrementLikes(cidStr string) error {
+	cid, err := strconv.Atoi(cidStr)
+	if err != nil {
+		return nil
+	}
+	path := filepath.Join(postsDir, strconv.Itoa(cid)+".md")
+
+	mu := getFileMutex(path)
+	mu.Lock()
+	defer mu.Unlock()
+
+	fm, body, err := ParseFile(path)
+	if err != nil {
+		return err
+	}
+	fm.Likes++
+	return WriteFile(path, fm, body)
+}
+
 // SavePost creates (POST) or updates (PUT) a post file.
 func SavePost(method string, cid int, title, text, status, cover, music string) (int, error) {
 	if method == "POST" {
