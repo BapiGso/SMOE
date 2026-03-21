@@ -26,8 +26,9 @@ func Post(c *echo.Context) error {
 		return renderMarkdown(c, content)
 	}
 	qpu := &store.QPU{
-		Contents: []store.Contents{content},
-		Comments: comments,
+		Contents:      []store.Contents{content},
+		Comments:      comments,
+		CommentGroups: store.GroupComments(comments),
 	}
 	return c.Render(200, "post.template", qpu)
 }

@@ -17,30 +17,23 @@
     </form>
 
     <div>
-        {{ if ne (len .Comments) 0 }}
+        {{ if ne (len .CommentGroups) 0 }}
             <h2>评论列表</h2>
         {{ end }}
-        <ol x-init="$el.remove()">
-        {{range .Comments}}
-            {{if eq .Parent 0}}</ol><ol>{{end}}
+        {{range .CommentGroups}}
+        <ol>
+            {{range .}}
             <li id="{{.Coid}}">
-                <header>
-                    <img alt="{{.Author}}" src="https://gravatar.loli.net/avatar/{{.MD5Mail}}?s=40&r=G&d=identicon" width="40" height="40">
-                    <div>
-                        <cite {{if eq .AuthorId 1}}data-author="master"{{end}}>
-                            {{if not .Url}}
-                                {{.Author}}
-                            {{else}}
-                                <a href="{{.Url}}" rel="external nofollow">{{.Author}}</a>
-                            {{end}}
-                        </cite>
-                        <time>{{.UnixFormat}}</time>
-                    </div>
-                    <button x-bind="comment.Reply">回复</button>
-                </header>
+                <img alt="{{.Author}}" width="40" height="40"
+                     src="https://cravatar.cn/avatar/{{.MD5Mail}}?s=40&d=identicon"
+                     onerror="this.onerror=null;this.src='https://gravatar.loli.net/avatar/{{.MD5Mail}}?s=40&d=identicon'">
+                <cite {{if eq .AuthorId 1}}data-author="master"{{end}}>{{if not .Url}}{{.Author}}{{else}}<a href="{{.Url}}" rel="external nofollow">{{.Author}}</a>{{end}}</cite>
+                <time>{{.UnixFormat}}</time>
+                <button x-bind="comment.Reply">回复</button>
                 <p>{{.Text}}</p>
             </li>
-        {{end}}
+            {{end}}
         </ol>
+        {{end}}
     </div>
 </footer>

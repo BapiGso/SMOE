@@ -155,14 +155,14 @@ document.addEventListener('alpine:init', () => {
                 cid: 0,
                 Reply: {
                     '@click'() {
-                        let parent = event.target.parentElement.parentElement;
-                        parent.insertAdjacentElement('afterend', this.$refs.comment);
-                        this.comment.parent = parent.id;
+                        let li = event.target.closest('li');
+                        li.insertAdjacentElement('afterend', this.$refs.comment);
+                        this.comment.parent = li.id;
                     },
                 },
                 CancelReply: {
                     '@click'() {
-                        $('.comment-wrap').insertAdjacentElement('afterbegin', this.$refs.comment);
+                        event.target.closest('footer').insertAdjacentElement('afterbegin', this.$refs.comment);
                         this.comment.parent = 0;
                     },
                 },

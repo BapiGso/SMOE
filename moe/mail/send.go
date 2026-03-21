@@ -1,4 +1,4 @@
-package tools
+package mail
 
 import (
 	"github.com/labstack/gommon/log"

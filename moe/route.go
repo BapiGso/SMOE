@@ -67,16 +67,17 @@ func (s *Smoe) LoadMiddlewareRoutes() {
 	front.Use(middleware.RemoveTrailingSlashWithConfig(middleware.RemoveTrailingSlashConfig{
 		RedirectCode: http.StatusMovedPermanently,
 	}))
-	front.GET("/", handler.IndexGorm)                                  // 首页路由 (GORM版本)
-	front.GET("/page/:num", handler.IndexGorm)                         // 分页路由 (GORM版本)
+	front.GET("/", handler.IndexGorm)                                  // 首页路由
+	front.GET("/page/:num", handler.IndexGorm)                         // 分页路由
 	front.GET("/archives/:cid", handler.Post)                          // 根据分类ID显示该分类下的文章列表
 	front.POST("/archives/:cid/comment", handler.SubmitArticleComment) // 管理评论提交
-	front.POST("/archives/:cid/like", handler.LikePost)               // 文章点赞
+	front.POST("/archives/:cid/like", handler.LikePost)                // 文章点赞
 	front.GET("/:page", handler.Page)                                  // 独立页面，注册在特殊独立页面前
 	front.GET("/feed", handler.RSS)                                    // RSS 订阅
 	front.GET("/archives", handler.Archives)                           // 归档页面路由，显示所有文章的归档分类
 	front.GET("/bangumi", handler.Bangumi)                             // 显示番剧相关信息的页面路由
 	front.Static("/usr/uploads", "usr/uploads")                        // 用户上传的文件，最后注册
+
 	// 后台管理
 	// 后台管理的路由组
 	back.Use(middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(3))) //每秒限制3次请求

@@ -1,4 +1,4 @@
-package tools
+package store
 
 import (
 	latex "github.com/aziis98/goldmark-latex"
@@ -12,7 +12,7 @@ import (
 	"go.abhg.dev/goldmark/mermaid"
 )
 
-var GoldMark = goldmark.New(
+var goldMark = goldmark.New(
 	goldmark.WithExtensions(
 		extension.GFM,
 		extension.Linkify,

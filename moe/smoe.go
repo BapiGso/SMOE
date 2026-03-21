@@ -2,8 +2,8 @@ package moe
 
 import (
 	"SMOE/assets"
+	"SMOE/moe/mail"
 	"SMOE/moe/store"
-	"SMOE/moe/tools"
 	"embed"
 	"log"
 
@@ -12,9 +12,9 @@ import (
 
 type Smoe struct {
 	cfg     store.Config
-	themeFS *embed.FS    //主题所在文件夹
-	e       *echo.Echo   //后台框架
-	mail    *tools.Email //邮件提醒
+	themeFS *embed.FS   //主题所在文件夹
+	e       *echo.Echo  //后台框架
+	mail    *mail.Email //邮件提醒
 }
 
 const (
