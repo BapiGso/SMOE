@@ -33,11 +33,7 @@ type rssItem struct {
 
 func RSS(c *echo.Context) error {
 	cfg, _ := store.ReadConfig()
-	domain := cfg.Server.Domain
-	if domain == "" {
-		domain = c.Request().Host
-	}
-	baseURL := c.Scheme() + "://" + domain
+	baseURL := c.Scheme() + "://" + c.Request().Host
 
 	posts, _, err := store.GetPostsByCidDesc(20, 0)
 	if err != nil {

@@ -50,8 +50,6 @@ type Config struct {
 		AppID  string `yaml:"appId"`
 	} `yaml:"bangumi"`
 	Server struct {
-		Port      string `yaml:"port"`      // HTTP 端口，默认 "80"
-		HttpsPort string `yaml:"httpsPort"` // HTTPS 端口（使用内置自签名证书）
-		Domain    string `yaml:"domain"`    // 域名，非空时启用 Let's Encrypt
+		Port string `yaml:"port"` // HTTP 端口，默认 "80"
 	} `yaml:"server"`
 }
