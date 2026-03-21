@@ -5,6 +5,6 @@ import (
 )
 
 var (
-	//go:embed *
+	//go:embed blog admin root
 	Assets embed.FS
 )
