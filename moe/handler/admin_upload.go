@@ -2,23 +2,24 @@ package handler
 
 import (
 	"fmt"
-	"github.com/labstack/echo/v5"
 	"hash/crc32"
 	"io"
 	"net/http"
 	"os"
 	"path/filepath"
 	"time"
+
+	"github.com/labstack/echo/v5"
 )
 
-// UploadImage 处理上传图片的请求 todo 多文件上传
+// Upload  处理上传图片的请求 todo 多文件上传
 func Upload(c *echo.Context) error {
 	files, err := c.MultipartForm()
 	if err != nil {
 		return err
 	}
 
-	data := []map[string]string{}
+	var data []map[string]string
 	for _, file := range files.File["files"] {
 		// 打开上传的文件
 		src, err := file.Open()

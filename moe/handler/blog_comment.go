@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"SMOE/moe/mymiddleware"
 	"SMOE/moe/store"
 	"strings"
 	"time"
@@ -39,9 +40,11 @@ func SubmitArticleComment(c *echo.Context) error {
 	if user, ok := c.Get("user").(*jwt.Token); ok && user.Valid {
 		req.AuthorId = 1
 	}
-	if err := store.AddComment(c.Param("cid"), req.Author, req.Mail, req.Url, req.Text, req.Parent, req.AuthorId); err != nil {
+	notification, err := store.AddComment(c.Param("cid"), req.Author, req.Mail, req.Url, req.Text, req.Parent, req.AuthorId)
+	if err != nil {
 		return err
 	}
+	mymiddleware.SetCommentNotification(c, notification)
 	rateMap.Store(rateKey, time.Now())
 	return c.JSON(200, nil)
 }

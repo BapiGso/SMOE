@@ -21,7 +21,6 @@ type FMComment struct {
 
 // FrontMatter is the YAML header of a .md file.
 type FrontMatter struct {
-	Title    string      `yaml:"title"`
 	Cover    string      `yaml:"cover,omitempty"`
 	Music    string      `yaml:"music,omitempty"`
 	Views    uint        `yaml:"views"`
@@ -73,15 +72,15 @@ func WriteFile(path string, fm FrontMatter, body string) error {
 }
 
 // ToContents converts a FrontMatter + body into a template-ready Contents value.
-// cid is the Unix timestamp derived from the filename.
-func ToContents(fm FrontMatter, body, contentType string, cid int) Contents {
+// cid is the Unix timestamp derived from the filename; title comes from the filename.
+func ToContents(fm FrontMatter, title, body, contentType string, cid int) Contents {
 	status := fm.Status
 	if status == "" {
 		status = "publish"
 	}
 	return Contents{
 		Cid:       cid,
-		Title:     fm.Title,
+		Title:     title,
 		Created:   int64(cid),
 		Text:      body,
 		Type:      contentType,

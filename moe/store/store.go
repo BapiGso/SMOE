@@ -47,9 +47,56 @@ func fmStatus(fm FrontMatter) string {
 	return fm.Status
 }
 
+// cidFromName extracts the cid from a post filename like "1586584980-标题.md" or "1586584980.md".
+func cidFromName(name string) (int, bool) {
+	if i := strings.IndexByte(name, '-'); i > 0 {
+		cid, err := strconv.Atoi(name[:i])
+		return cid, err == nil
+	}
+	cid, err := strconv.Atoi(name)
+	return cid, err == nil
+}
+
+// titleFromName extracts the title part from a filename like "1586584980-标题".
+func titleFromName(name string) string {
+	if i := strings.IndexByte(name, '-'); i > 0 {
+		return name[i+1:]
+	}
+	return ""
+}
+
+// postPath finds the actual file path for a given cid in postsDir.
+// Supports both "{cid}.md" and "{cid}-{title}.md" naming.
+// Also returns the title extracted from the filename.
+func postPath(cid int) (path string, title string, err error) {
+	prefix := strconv.Itoa(cid)
+	entries, err := os.ReadDir(postsDir)
+	if err != nil {
+		return "", "", err
+	}
+	for _, e := range entries {
+		name, ok := strings.CutSuffix(e.Name(), ".md")
+		if e.IsDir() || !ok {
+			continue
+		}
+		if name == prefix {
+			return filepath.Join(postsDir, e.Name()), "", nil
+		}
+		if strings.HasPrefix(name, prefix+"-") {
+			return filepath.Join(postsDir, e.Name()), titleFromName(name), nil
+		}
+	}
+	return "", "", fmt.Errorf("post %d not found", cid)
+}
+
+// postFileName builds a filename like "{cid}-{title}.md".
+func postFileName(cid int, title string) string {
+	safe := strings.NewReplacer("/", "_", "\\", "_", ":", "_", "*", "_", "?", "_", "\"", "_", "<", "_", ">", "_", "|", "_").Replace(title)
+	return strconv.Itoa(cid) + "-" + safe + ".md"
+}
+
 // walkPosts calls fn for every valid post in usr/posts/*.md.
-// Files whose names are not integers (e.g. drafts) are silently skipped.
-func walkPosts(fn func(cid int, fm FrontMatter, body string)) error {
+func walkPosts(fn func(cid int, title string, fm FrontMatter, body string)) error {
 	entries, err := os.ReadDir(postsDir)
 	if err != nil {
 		return err
@@ -59,15 +106,15 @@ func walkPosts(fn func(cid int, fm FrontMatter, body string)) error {
 		if e.IsDir() || !ok {
 			continue
 		}
-		cid, err := strconv.Atoi(name)
-		if err != nil {
+		cid, valid := cidFromName(name)
+		if !valid {
 			continue
 		}
 		fm, body, err := ParseFile(filepath.Join(postsDir, e.Name()))
 		if err != nil {
 			continue
 		}
-		fn(cid, fm, body)
+		fn(cid, titleFromName(name), fm, body)
 	}
 	return nil
 }
@@ -97,9 +144,9 @@ func toComment(fc FMComment, cid uint) Comments {
 // GetPostsByCidDesc returns paginated published posts sorted newest first.
 func GetPostsByCidDesc(limit, offset int) ([]Contents, bool, error) {
 	var all []Contents
-	if err := walkPosts(func(cid int, fm FrontMatter, body string) {
+	if err := walkPosts(func(cid int, title string, fm FrontMatter, body string) {
 		if fmStatus(fm) == "publish" {
-			all = append(all, ToContents(fm, body, "post", cid))
+			all = append(all, ToContents(fm, title, body, "post", cid))
 		}
 	}); err != nil {
 		return nil, false, err
@@ -121,9 +168,9 @@ func GetPostsByCidDesc(limit, offset int) ([]Contents, bool, error) {
 // GetAllPublishedPosts returns all published posts sorted newest first.
 func GetAllPublishedPosts() ([]Contents, error) {
 	var result []Contents
-	if err := walkPosts(func(cid int, fm FrontMatter, body string) {
+	if err := walkPosts(func(cid int, title string, fm FrontMatter, body string) {
 		if fmStatus(fm) == "publish" {
-			result = append(result, ToContents(fm, body, "post", cid))
+			result = append(result, ToContents(fm, title, body, "post", cid))
 		}
 	}); err != nil {
 		return nil, err
@@ -140,7 +187,7 @@ func GetAllPages() ([]Contents, error) {
 	}
 	var pages []Contents
 	for _, e := range entries {
-		slug, ok := strings.CutSuffix(e.Name(), ".md")
+		name, ok := strings.CutSuffix(e.Name(), ".md")
 		if e.IsDir() || !ok {
 			continue
 		}
@@ -148,7 +195,8 @@ func GetAllPages() ([]Contents, error) {
 		if err != nil {
 			continue
 		}
-		c := ToContents(fm, body, "page", 0)
+		slug, title, _ := strings.Cut(name, "-")
+		c := ToContents(fm, title, body, "page", 0)
 		c.Slug = slug
 		pages = append(pages, c)
 	}
@@ -157,7 +205,10 @@ func GetAllPages() ([]Contents, error) {
 
 // GetPostByCid returns a published post and its approved comments.
 func GetPostByCid(cid int) (Contents, []Comments, error) {
-	path := filepath.Join(postsDir, strconv.Itoa(cid)+".md")
+	path, title, err := postPath(cid)
+	if err != nil {
+		return Contents{}, nil, err
+	}
 	fm, body, err := ParseFile(path)
 	if err != nil {
 		return Contents{}, nil, err
@@ -172,36 +223,68 @@ func GetPostByCid(cid int) (Contents, []Comments, error) {
 		}
 	}
 	sort.Slice(approved, func(i, j int) bool { return approved[i].Created < approved[j].Created })
-	return ToContents(fm, body, "post", cid), approved, nil
+	return ToContents(fm, title, body, "post", cid), approved, nil
 }
 
-// GetPageBySlug returns a page by its slug (filename without .md).
+// pagePath finds the actual file path and title for a given slug in pagesDir.
+func pagePath(slug string) (path string, title string, err error) {
+	entries, err := os.ReadDir(pagesDir)
+	if err != nil {
+		return "", "", err
+	}
+	for _, e := range entries {
+		name, ok := strings.CutSuffix(e.Name(), ".md")
+		if e.IsDir() || !ok {
+			continue
+		}
+		if name == slug {
+			return filepath.Join(pagesDir, e.Name()), "", nil
+		}
+		if strings.HasPrefix(name, slug+"-") {
+			return filepath.Join(pagesDir, e.Name()), name[len(slug)+1:], nil
+		}
+	}
+	return "", "", fmt.Errorf("page %s not found", slug)
+}
+
+// GetPageBySlug returns a page by its slug.
 func GetPageBySlug(slug string) (Contents, error) {
-	fm, body, err := ParseFile(filepath.Join(pagesDir, slug+".md"))
+	path, title, err := pagePath(slug)
 	if err != nil {
 		return Contents{}, err
 	}
-	c := ToContents(fm, body, "page", 0)
+	fm, body, err := ParseFile(path)
+	if err != nil {
+		return Contents{}, err
+	}
+	c := ToContents(fm, title, body, "page", 0)
 	c.Slug = slug
 	return c, nil
 }
 
 // GetContentByCid returns a post by cid for admin editing (ignores status).
 func GetContentByCid(cid int) (Contents, error) {
-	fm, body, err := ParseFile(filepath.Join(postsDir, strconv.Itoa(cid)+".md"))
+	path, title, err := postPath(cid)
 	if err != nil {
 		return Contents{}, err
 	}
-	return ToContents(fm, body, "post", cid), nil
+	fm, body, err := ParseFile(path)
+	if err != nil {
+		return Contents{}, err
+	}
+	return ToContents(fm, title, body, "post", cid), nil
 }
 
 // AddComment appends a new comment to a post's front matter.
-func AddComment(cidStr, author, mail, url, text string, parent, authorId uint) error {
+func AddComment(cidStr, author, mail, url, text string, parent, authorId uint) (CommentNotification, error) {
 	cid, err := strconv.Atoi(cidStr)
 	if err != nil {
-		return fmt.Errorf("invalid cid: %s", cidStr)
+		return CommentNotification{}, fmt.Errorf("invalid cid: %s", cidStr)
 	}
-	path := filepath.Join(postsDir, strconv.Itoa(cid)+".md")
+	path, title, err := postPath(cid)
+	if err != nil {
+		return CommentNotification{}, err
+	}
 
 	mu := getFileMutex(path)
 	mu.Lock()
@@ -209,25 +292,47 @@ func AddComment(cidStr, author, mail, url, text string, parent, authorId uint) e
 
 	fm, body, err := ParseFile(path)
 	if err != nil {
-		return err
+		return CommentNotification{}, err
 	}
 	var maxID uint
+	var parentComment *Comments
 	for _, c := range fm.Comments {
 		if c.ID > maxID {
 			maxID = c.ID
 		}
+		if c.ID == parent {
+			parentCopy := toComment(c, uint(cid))
+			parentComment = &parentCopy
+		}
 	}
-	fm.Comments = append(fm.Comments, FMComment{
+	if parent != 0 && parentComment == nil {
+		return CommentNotification{}, fmt.Errorf("parent comment %d not found", parent)
+	}
+
+	created := time.Now().Format(time.RFC3339)
+	newComment := FMComment{
 		ID:      maxID + 1,
 		Author:  template.HTMLEscapeString(author),
 		Mail:    mail,
 		Url:     url,
 		Content: template.HTMLEscapeString(text),
-		Created: time.Now().Format(time.RFC3339),
+		Created: created,
 		Parent:  parent,
 		Status:  "waiting",
-	})
-	return WriteFile(path, fm, body)
+	}
+	fm.Comments = append(fm.Comments, newComment)
+	if err := WriteFile(path, fm, body); err != nil {
+		return CommentNotification{}, err
+	}
+
+	comment := toComment(newComment, uint(cid))
+	comment.AuthorId = authorId
+	return CommentNotification{
+		PostTitle: title,
+		PostCID:   uint(cid),
+		Comment:   comment,
+		Parent:    parentComment,
+	}, nil
 }
 
 // IncrementViews increments the view counter of a post file.
@@ -236,7 +341,10 @@ func IncrementViews(cidStr string) error {
 	if err != nil {
 		return nil
 	}
-	path := filepath.Join(postsDir, strconv.Itoa(cid)+".md")
+	path, _, err := postPath(cid)
+	if err != nil {
+		return err
+	}
 
 	mu := getFileMutex(path)
 	mu.Lock()
@@ -256,7 +364,10 @@ func IncrementLikes(cidStr string) error {
 	if err != nil {
 		return nil
 	}
-	path := filepath.Join(postsDir, strconv.Itoa(cid)+".md")
+	path, _, err := postPath(cid)
+	if err != nil {
+		return err
+	}
 
 	mu := getFileMutex(path)
 	mu.Lock()
@@ -276,23 +387,31 @@ func SavePost(method string, cid int, title, text, status, cover, music string) 
 		cid = int(time.Now().Unix())
 	}
 
-	path := filepath.Join(postsDir, strconv.Itoa(cid)+".md")
-	mu := getFileMutex(path)
-	mu.Lock()
-	defer mu.Unlock()
+	newPath := filepath.Join(postsDir, postFileName(cid, title))
 
 	var fm FrontMatter
 	if method == "PUT" {
-		existing, _, err := ParseFile(path)
+		oldPath, _, err := postPath(cid)
 		if err == nil {
-			fm = existing // preserve views, likes, comments
+			existing, _, parseErr := ParseFile(oldPath)
+			if parseErr == nil {
+				fm = existing // preserve views, likes, comments
+			}
+			// remove old file if name changed
+			if oldPath != newPath {
+				os.Remove(oldPath)
+			}
 		}
 	}
-	fm.Title = title
+
+	mu := getFileMutex(newPath)
+	mu.Lock()
+	defer mu.Unlock()
+
 	fm.Cover = cover
 	fm.Music = music
 	fm.Status = status
-	if err := WriteFile(path, fm, text); err != nil {
+	if err := WriteFile(newPath, fm, text); err != nil {
 		return 0, err
 	}
 	return cid, nil
@@ -301,9 +420,9 @@ func SavePost(method string, cid int, title, text, status, cover, music string) 
 // GetPostsByStatus returns posts with a given status, paginated.
 func GetPostsByStatus(status string, limit, offset int) ([]Contents, error) {
 	var filtered []Contents
-	if err := walkPosts(func(cid int, fm FrontMatter, body string) {
+	if err := walkPosts(func(cid int, title string, fm FrontMatter, body string) {
 		if fmStatus(fm) == status {
-			filtered = append(filtered, ToContents(fm, body, "post", cid))
+			filtered = append(filtered, ToContents(fm, title, body, "post", cid))
 		}
 	}); err != nil {
 		return nil, err
@@ -318,7 +437,7 @@ func GetPostsByStatus(status string, limit, offset int) ([]Contents, error) {
 // GetAllComments returns comments across all posts filtered by status, paginated.
 func GetAllComments(status string, limit, offset int) ([]Comments, error) {
 	var all []Comments
-	if err := walkPosts(func(cid int, fm FrontMatter, _ string) {
+	if err := walkPosts(func(cid int, _ string, fm FrontMatter, _ string) {
 		for _, fc := range fm.Comments {
 			if fc.Status == status {
 				all = append(all, toComment(fc, uint(cid)))

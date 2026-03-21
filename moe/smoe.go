@@ -2,7 +2,7 @@ package moe
 
 import (
 	"SMOE/assets"
-	"SMOE/moe/mail"
+	"SMOE/moe/mymiddleware"
 	"SMOE/moe/store"
 	"embed"
 	"log"
@@ -12,9 +12,8 @@ import (
 
 type Smoe struct {
 	cfg     store.Config
-	themeFS *embed.FS   //主题所在文件夹
-	e       *echo.Echo  //后台框架
-	mail    *mail.Email //邮件提醒
+	themeFS *embed.FS  //主题所在文件夹
+	e       *echo.Echo //后台框架
 }
 
 const (
@@ -37,6 +36,7 @@ func New() *Smoe {
 		log.Fatal("读取 usr/config.yaml 失败: ", err)
 	}
 	s := &Smoe{cfg: cfg}
+	mymiddleware.ConfigureCommentNotifier(cfg)
 	s.themeFS = &assets.Assets
 	s.e = echo.New()
 	return s

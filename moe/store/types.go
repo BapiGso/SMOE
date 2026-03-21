@@ -29,6 +29,13 @@ type Comments struct {
 	Parent   uint    `json:"Parent"`
 }
 
+type CommentNotification struct {
+	PostTitle string
+	PostCID   uint
+	Comment   Comments
+	Parent    *Comments
+}
+
 // QPU Query Processing Unit 模板数据容器
 type QPU struct {
 	Contents      []Contents
@@ -52,4 +59,9 @@ type Config struct {
 	Server struct {
 		Port string `yaml:"port"` // HTTP 端口，默认 "80"
 	} `yaml:"server"`
+	Mail struct {
+		ResendAPI string `yaml:"resendAPI"`
+		To        string `yaml:"to"`
+		CC        string `yaml:"cc"`
+	} `yaml:"mail"`
 }

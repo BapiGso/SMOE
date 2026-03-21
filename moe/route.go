@@ -70,7 +70,7 @@ func (s *Smoe) LoadMiddlewareRoutes() {
 	front.GET("/", handler.IndexGorm)                                  // 首页路由
 	front.GET("/page/:num", handler.IndexGorm)                         // 分页路由
 	front.GET("/archives/:cid", handler.Post)                          // 根据分类ID显示该分类下的文章列表
-	front.POST("/archives/:cid/comment", handler.SubmitArticleComment) // 管理评论提交
+	front.POST("/archives/:cid/comment", handler.SubmitArticleComment, mymiddleware.CommentNotify()) // 管理评论提交
 	front.POST("/archives/:cid/like", handler.LikePost)                // 文章点赞
 	front.GET("/:page", handler.Page)                                  // 独立页面，注册在特殊独立页面前
 	front.GET("/feed", handler.RSS)                                    // RSS 订阅
