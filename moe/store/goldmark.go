@@ -16,7 +16,7 @@ var goldMark = goldmark.New(
 	goldmark.WithExtensions(
 		extension.GFM,
 		extension.Linkify,
-		figure.Figure,
+		figure.Figure.WithSkipNoCaption(),
 		&frontmatter.Extender{},
 		&mermaid.Extender{
 			MermaidURL: "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js",

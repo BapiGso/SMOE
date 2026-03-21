@@ -11,7 +11,7 @@ permissions:
 env:
   NAME: ${{ github.event.repository.name }}
   OSES: linux windows darwin
-  ARCHES: amd64 arm64 arm riscv64
+  ARCHES: amd64 arm64 riscv64
 
 jobs:
   release:

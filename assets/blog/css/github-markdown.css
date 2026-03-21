@@ -133,8 +133,8 @@
   color: var(--fgColor-default);
   background-color: var(--bgColor-default);
   font-family: var(--fontStack-sansSerif, -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji");
-  font-size: 16px;
-  line-height: 1.5;
+  font-size: 14px;
+  line-height: 1.8;
   word-wrap: break-word;
 }
 
@@ -247,7 +247,7 @@
 }
 
 .markdown-body figure {
-  margin: 1em var(--base-size-40);
+  margin: 0;
 }
 
 .markdown-body hr {
@@ -435,7 +435,7 @@
 
 .markdown-body p {
   margin-top: 0;
-  margin-bottom: 10px;
+  margin-bottom: 16px;
 }
 
 .markdown-body blockquote {
