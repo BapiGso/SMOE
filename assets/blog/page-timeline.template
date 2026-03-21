@@ -1,9 +1,9 @@
 {{template "header.template" "时间线"}}
 <body>
-<header class="page-header">
-    <button class="logo-min" onclick="history.back()" aria-label="返回"></button>
-</header>
     <article class="page timeline">
+        <header class="page-header">
+            <button class="logo-min" onclick="history.back()" aria-label="返回"></button>
+        </header>
         <section>
             {{$DateTmp := "2006年01月02日"}}
             {{range .Contents}}
@@ -11,7 +11,7 @@
                     <h2><strong>{{slice .UnixFormat 0 4}} 年</strong></h2>
                 {{end}}
                 {{if ne (slice .UnixFormat 0 9) (slice $DateTmp 0 9)}}
-                    <h3><b>{{slice .UnixFormat 7 9}} 月</b></h3>
+                    <b>{{slice .UnixFormat 7 9}} 月</b>
                     {{$DateTmp = .UnixFormat}}
                 {{end}}
                 <ul>

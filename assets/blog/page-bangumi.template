@@ -1,14 +1,8 @@
 {{template "header.template" "追番"}}
 <body>
-<header class="page-header">
-    <button class="logo-min" onclick="history.back()" aria-label="返回"></button>
-</header>
+
 <style>
-.bangumi {
-    max-width: 1200px;
-    margin: 2em auto;
-    padding: 0 2em;
-}
+
 .bangumi h2 {
     margin: 1.5em 0 1em;
 }
@@ -124,7 +118,10 @@
 }
 </style>
 
-<main class="page bangumi">
+<article class="page bangumi">
+    <header class="page-header">
+        <button class="logo-min" onclick="history.back()" aria-label="返回"></button>
+    </header>
     <section aria-label="看过">
     <h2><strong>看过</strong></h2>
     <ul class="bgm-grid">
@@ -161,6 +158,6 @@
         {{end}}
     </ul>
     </section>
-</main>
+</article>
 {{template "footer.template"}}
 </body>

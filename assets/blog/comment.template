@@ -1,33 +1,33 @@
-<section class="comment-wrap" aria-label="评论区">
+<footer>
 
-    <form id="comment-form" name="comment-form" autocomplete="off" x-bind="comment" method="post">
-        <h2>发表评论</h2>
-        <div class="form-inputs">
-            <input type="text"   aria-label="author" name="author" id="author" placeholder="昵称*"  maxlength="50" required>
-            <input type="email"  aria-label="email"  name="mail"   id="mail"   placeholder="邮箱*"  maxlength="50" required>
-            <input type="text"   aria-label="url"    name="url"    id="url"    placeholder="站点"   maxlength="50">
+    <form name="comment-form" autocomplete="off" x-bind="comment" method="post">
+        <h4>发表评论</h4>
+        <div>
+            <input type="text"   aria-label="author" name="author" placeholder="昵称*"  maxlength="50" required>
+            <input type="email"  aria-label="email"  name="mail"   placeholder="邮箱*"  maxlength="50" required>
+            <input type="text"   aria-label="url"    name="url"    placeholder="站点"   maxlength="50">
             <input type="hidden" name="parent" required x-model="comment.parent">
             <input type="hidden" name="cid"    required x-model="comment.cid">
         </div>
-        <textarea aria-label="comment" rows="5" id="textarea" name="text" maxlength="1000" placeholder="说点什么..." required></textarea>
-        <div class="form-actions">
+        <textarea aria-label="comment" rows="5" name="text" maxlength="1000" placeholder="说点什么..." required></textarea>
+        <div>
             <button type="button" x-show="comment.parent !== 0" x-bind="comment.CancelReply">取消回复</button>
-            <button id="submit">发表评论</button>
+            <button type="submit">发表评论</button>
         </div>
     </form>
 
-    <div class="comments-section">
+    <div>
         {{ if ne (len .Comments) 0 }}
             <h2>评论列表</h2>
         {{ end }}
-        <ol class="comment-list" x-init="$el.remove()">
+        <ol x-init="$el.remove()">
         {{range .Comments}}
-            {{if eq .Parent 0}}</ol><ol class="comment-list">{{end}}
-            <li class="{{if eq .Parent 0}}comment-parent{{else}}comment-child{{end}}" id="{{.Coid}}">
-                <header class="comment-header">
-                    <img alt="{{.Author}}" class="avatar" src="https://gravatar.loli.net/avatar/{{.MD5Mail}}?s=40&r=G&d=identicon" width="40" height="40">
-                    <div class="comment-meta">
-                        <cite class="{{if (eq .AuthorId 1)}}master{{end}}">
+            {{if eq .Parent 0}}</ol><ol>{{end}}
+            <li id="{{.Coid}}">
+                <header>
+                    <img alt="{{.Author}}" src="https://gravatar.loli.net/avatar/{{.MD5Mail}}?s=40&r=G&d=identicon" width="40" height="40">
+                    <div>
+                        <cite {{if eq .AuthorId 1}}data-author="master"{{end}}>
                             {{if not .Url}}
                                 {{.Author}}
                             {{else}}
@@ -38,9 +38,9 @@
                     </div>
                     <button x-bind="comment.Reply">回复</button>
                 </header>
-                <p class="comment-content">{{.Text}}</p>
+                <p>{{.Text}}</p>
             </li>
         {{end}}
         </ol>
     </div>
-</section>
+</footer>

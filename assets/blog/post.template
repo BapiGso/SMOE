@@ -1,7 +1,10 @@
 {{template "header.template" (index .Contents 0).Title}}
 <body x-data="smoe">
-    <header class="page-header" :style="`box-shadow:inset ${bgmPlayer.playProgress}vw 0 #0001`">
-        <button class="logo-min" @click="if (!$('#preview')) return location.href='/';history.back()"></button>
+
+
+<article data-id="{{(index .Contents 0).Cid}}">
+    <header class="page-header">
+        <button class="logo-min" @click="goBack()"></button>
         <button class="play" title="播放/暂停" x-bind="bgmPlayer.Button">
             <svg viewBox="0 0 50 50">
                 <path :d="bgmPlayer.playing?'M0 1 0 49 12 49 12 1Z':'M0 1 0 49 22.5 37 22.5 12Z'" style="transition: all .5s ease;"/>
@@ -12,22 +15,20 @@
         <button class="like"  @click="alert('Function need updated')"></button>
         <button class="night" @click="alert('Function need updated')"></button>
     </header>
-
-{{with index .Contents 0}}
-<article data-id="{{.Cid}}">
-    <h1 class="title">{{.Title}}</h1>
-    <footer class="post-meta">
-        <span>{{.UnixToStr}}</span>
-        <span>阅读 <span id="readNum">{{.Views}}</span></span>
-        <span>字数 <span id="wordNum">{{.MDCount}}</span></span>
-        <span>喜欢 <span class="count likeNum">{{.Likes}}</span></span>
-    </footer>
-    <section>
-        {{.MD2HTML}}
-    </section>
-    <audio preload="auto" src="{{.MusicList}}" x-bind="bgmPlayer"></audio>
+    {{with index .Contents 0}}
+        <h1 class="title">{{.Title}}</h1>
+        <div class="post-meta">
+            <span>{{.UnixToStr}}</span>
+            <span>阅读 <span id="readNum">{{.Views}}</span></span>
+            <span>字数 <span id="wordNum">{{.MDCount}}</span></span>
+            <span>喜欢 <span class="count likeNum">{{.Likes}}</span></span>
+        </div>
+        <section>
+            {{.MD2HTML}}
+        </section>
+        <audio preload="auto" src="{{.MusicList}}" x-bind="bgmPlayer"></audio>
+    {{end}}
+    {{template "comment.template" .}}
 </article>
-{{end}}
-{{template "comment.template" .}}
 {{template "footer.template"}}
 </body>
