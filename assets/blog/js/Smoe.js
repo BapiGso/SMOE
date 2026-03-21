@@ -5,21 +5,21 @@
  */
 document.addEventListener('alpine:init', () => {
     Alpine.data('smoe', () => {
-        const preview = Object.assign(document.createElement('aside'), { id: 'preview' });
+        const preview = Object.assign(document.createElement('aside'));
 
         const openPreview = () => {
             document.body.insertAdjacentElement('afterbegin', preview);
             requestAnimationFrame(() => requestAnimationFrame(() => {
                 document.documentElement.className = '';
                 document.documentElement.style.overflow = 'hidden';
-                preview.style.transform = 'unset';
+                preview.style.transform = 'translateX(0)';
             }));
         };
 
         const closePreview = () => {
             preview.style.transform = 'translateX(100%)';
             document.documentElement.style.overflow = '';
-            preview.addEventListener('transitionend', () => preview.remove(), { once: true });
+            setTimeout(() => preview.remove(), 500);
         };
 
         return {
@@ -28,6 +28,17 @@ document.addEventListener('alpine:init', () => {
                 const match = window.location.pathname.match(/\/page\/(\d+)/);
                 return match ? parseInt(match[1]) + 1 : 2;
             })(),
+
+            goBack() {
+                if (preview.parentElement) {
+                    closePreview();
+                    history.back();
+                } else {
+                    document.body.style.transition = 'transform 0.5s cubic-bezier(0.25, 0.5, 0.5, 0.9)';
+                    document.body.style.transform = 'translateX(100%)';
+                    setTimeout(() => location.href = '/', 500);
+                }
+            },
 
             parallax(el) {
                 const img = el.firstElementChild;
@@ -59,11 +70,11 @@ document.addEventListener('alpine:init', () => {
 
             async ajaxPost(url) {
                 const doc = new DOMParser().parseFromString(await (await fetch(url)).text(), 'text/html');
-                preview.innerHTML = doc.documentElement.innerHTML;
+                preview.innerHTML = doc.body.innerHTML;
                 history.replaceState({ t: document.title, u: location.origin }, '', location.href);
                 history.pushState({ t: doc.title, u: url }, '', url);
                 document.title = doc.title;
-                document.getElementById('nav').removeAttribute('open');
+                this.$refs.nav.open = false;
                 openPreview();
             },
 
@@ -71,7 +82,7 @@ document.addEventListener('alpine:init', () => {
                 const res = await fetch(`/page/${this.pageNum}`);
                 this.hasMore = res.headers.get('X-Has-More') === 'true';
                 const data = await res.text();
-                if (data.trim()) $('#primary').insertAdjacentHTML('beforeend', data);
+                if (data.trim()) $('main > ol').insertAdjacentHTML('beforeend', data);
                 this.pageNum++;
             },
 
@@ -85,11 +96,10 @@ document.addEventListener('alpine:init', () => {
 
             bgmPlayer: {
                 playing: false,
-                playProgress: 0,
                 'x-ref': 'bgmPlayer',
                 '@timeupdate'(e) {
                     this.bgmPlayer.playing = !e.target.paused;
-                    this.bgmPlayer.playProgress = ((e.target.currentTime / e.target.duration) * 100).toFixed(2);
+                    e.target.parentElement.style.setProperty('--play-progress', e.target.currentTime / e.target.duration * 100 + '%');
                 },
                 '@ended'() { console.log('bgm complete'); },
                 Button: {
