@@ -5,8 +5,8 @@
     <meta charset="UTF-8">
     <meta content="IE=edge" http-equiv="X-UA-Compatible">
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
-    <link href="/new-admin/css/menu.css" rel="stylesheet">
-    <link href="/new-admin/css/iconfont.css" rel="stylesheet">
+    <link href="/assets/admin/css/menu.css" rel="stylesheet">
+    <link href="/assets/admin/css/iconfont.css" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/bytemd/dist/index.css" />
     <link rel="stylesheet" href="https://unpkg.com/github-markdown-css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">

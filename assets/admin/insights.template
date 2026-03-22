@@ -4,10 +4,10 @@
     <meta charset="UTF-8">
     <link rel="icon" type="image/png" href="/assets/root/favicon.ico">
     <title>はくぎょくろう</title>
-    <link rel="stylesheet" href="/assets/new-admin/css/http_unpkg.com_spectre.css">
-    <link rel="stylesheet" href="/assets/new-admin/css/http_unpkg.com_bytemd_dist_index.css">
-    <script src="/assets/new-admin/js/alpine.min.js" defer></script>
-    <script src="/assets/new-admin/js/echarts.min.js"></script>
+    <link rel="stylesheet" href="/assets/admin/css/http_unpkg.com_spectre.css">
+    <link rel="stylesheet" href="/assets/admin/css/http_unpkg.com_bytemd_dist_index.css">
+    <script src="/assets/admin/js/alpine.min.js" defer></script>
+    <script src="/assets/admin/js/echarts.min.js"></script>
 </head>
 <body x-data="smoe">
     <div x-init="lineChart($el, data.Views)" style="height: 300px"></div>

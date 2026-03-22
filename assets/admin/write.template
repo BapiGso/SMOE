@@ -4,10 +4,10 @@
     <meta charset="UTF-8">
     <link rel="icon" type="image/png" href="/assets/root/favicon.ico">
     <title>はくぎょくろう</title>
-    <link rel="stylesheet" href="/assets/new-admin/css/http_unpkg.com_spectre.css">
-    <link rel="stylesheet" href="/assets/new-admin/css/http_unpkg.com_bytemd_dist_index.css" />
+    <link rel="stylesheet" href="/assets/admin/css/http_unpkg.com_spectre.css">
+    <link rel="stylesheet" href="/assets/admin/css/http_unpkg.com_bytemd_dist_index.css" />
     <link rel="stylesheet" href="https://unpkg.com/github-markdown-css" />
-    <script src="/assets/new-admin/js/alpine.min.js" defer></script>
+    <script src="/assets/admin/js/alpine.min.js" defer></script>
     <script>window.process={env:{NODE_ENV:'production'}}//editor依赖这个process初始化</script>
     <style>
         *{

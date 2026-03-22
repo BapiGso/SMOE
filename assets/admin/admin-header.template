@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <link rel="icon" type="image/png" href="/assets/root/favicon.ico">
-    <script src="/assets/new-admin/js/alpine.min.js" defer></script>
+    <script src="/assets/admin/js/alpine.min.js" defer></script>
     <title>はくぎょくろう</title>
     <style>
         body{
@@ -99,9 +99,9 @@
             filter: drop-shadow(0 0 20px black);
         }
     </style>
-    <script type="module" crossorigin src="/assets/new-admin/js/sky.js"></script>
+    <script type="module" crossorigin src="/assets/admin/js/sky.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/spectre.css/dist/spectre.min.css">
-{{/*    <link rel="stylesheet" href="/assets/new-admin/css/tufte.min.css">*/}}
+{{/*    <link rel="stylesheet" href="/assets/admin/css/tufte.min.css">*/}}
 
     {{block "custom-head" .}}{{end}}
 
