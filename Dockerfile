@@ -6,7 +6,8 @@ RUN apk add --no-cache curl jq \
        | jq -r '.assets[] | select(.name | test("linux.*amd64")) | .browser_download_url') \
     && curl -L -o /usr/local/bin/SMOE "$DOWNLOAD_URL" \
     && chmod +x /usr/local/bin/SMOE \
-    && apk del curl jq
+    && apk del curl jq \
+    && rm -rf /var/cache/apk/*
 
 WORKDIR /app
 
