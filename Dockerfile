@@ -1,18 +1,11 @@
+FROM alpine AS dl
+RUN wget -O /SMOE https://github.com/BapiGso/SMOE/releases/latest/download/SMOE_linux_amd64 \
+    && chmod +x /SMOE
 
-FROM alpine
-
-RUN apk add --no-cache curl jq \
-    && DOWNLOAD_URL=$(curl -s https://api.github.com/repos/BapiGso/SMOE/releases/latest \
-       | jq -r '.assets[] | select(.name | test("linux.*amd64")) | .browser_download_url') \
-    && curl -L -o /usr/local/bin/SMOE "$DOWNLOAD_URL" \
-    && chmod +x /usr/local/bin/SMOE \
-    && apk del curl jq \
-    && rm -rf /var/cache/apk/*
-
+FROM scratch
+COPY --from=dl /SMOE /SMOE
+COPY --from=dl /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 WORKDIR /app
-
 VOLUME /app/usr
-
 EXPOSE 95
-
-CMD ["SMOE"]
+CMD ["/SMOE"]

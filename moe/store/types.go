@@ -11,6 +11,7 @@ type Contents struct {
 	Views     uint   `json:"Views"`
 	Likes     uint   `json:"Likes"`
 	CoverList string `json:"CoverList"`
+	AutoCover string `json:"AutoCover"`
 	MusicList string `json:"MusicList"`
 }
 

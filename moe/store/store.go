@@ -17,6 +17,7 @@ import (
 const (
 	postsDir   = "usr/posts"
 	pagesDir   = "usr/pages"
+	coverDir   = "usr/uploads/background"
 	configFile = "usr/config.yaml"
 )
 
@@ -119,6 +120,36 @@ func walkPosts(fn func(cid int, title string, fm FrontMatter, body string)) erro
 	return nil
 }
 
+func listAutoCovers() ([]string, error) {
+	entries, err := os.ReadDir(coverDir)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	covers := make([]string, 0, len(entries))
+	for _, e := range entries {
+		if e.IsDir() || !strings.EqualFold(filepath.Ext(e.Name()), ".avif") {
+			continue
+		}
+		covers = append(covers, "/"+e.Name())
+	}
+	sort.Strings(covers)
+	return covers, nil
+}
+
+func assignAutoCovers(posts []Contents) error {
+	covers, err := listAutoCovers()
+	if err != nil || len(covers) == 0 {
+		return err
+	}
+	for i := range posts {
+		posts[i].AutoCover = "/usr/uploads/background" + covers[i%len(covers)]
+	}
+	return nil
+}
+
 // toComment converts a single FMComment to a Comments value.
 func toComment(fc FMComment, cid uint) Comments {
 	var url *string
@@ -152,6 +183,9 @@ func GetPostsByCidDesc(limit, offset int) ([]Contents, bool, error) {
 		return nil, false, err
 	}
 	sort.Slice(all, func(i, j int) bool { return all[i].Cid > all[j].Cid })
+	if err := assignAutoCovers(all); err != nil {
+		return nil, false, err
+	}
 
 	if offset >= len(all) {
 		return nil, false, nil
@@ -176,6 +210,9 @@ func GetAllPublishedPosts() ([]Contents, error) {
 		return nil, err
 	}
 	sort.Slice(result, func(i, j int) bool { return result[i].Cid > result[j].Cid })
+	if err := assignAutoCovers(result); err != nil {
+		return nil, err
+	}
 	return result, nil
 }
 
@@ -203,6 +240,19 @@ func GetAllPages() ([]Contents, error) {
 	return pages, nil
 }
 
+func autoCoverForCid(cid int) (string, error) {
+	posts, err := GetAllPublishedPosts()
+	if err != nil {
+		return "", err
+	}
+	for _, post := range posts {
+		if post.Cid == cid {
+			return post.AutoCover, nil
+		}
+	}
+	return "", nil
+}
+
 // GetPostByCid returns a published post and its approved comments.
 func GetPostByCid(cid int) (Contents, []Comments, error) {
 	path, title, err := postPath(cid)
@@ -223,7 +273,13 @@ func GetPostByCid(cid int) (Contents, []Comments, error) {
 		}
 	}
 	sort.Slice(approved, func(i, j int) bool { return approved[i].Created < approved[j].Created })
-	return ToContents(fm, title, body, "post", cid), approved, nil
+	content := ToContents(fm, title, body, "post", cid)
+	cover, err := autoCoverForCid(cid)
+	if err != nil {
+		return Contents{}, nil, err
+	}
+	content.AutoCover = cover
+	return content, approved, nil
 }
 
 // pagePath finds the actual file path and title for a given slug in pagesDir.

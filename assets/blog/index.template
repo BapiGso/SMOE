@@ -1,7 +1,7 @@
 {{define "post-card"}}
 <li>
     <a @click.prevent="ajaxPost($el.href)" href="/archives/{{.Cid}}" title="{{.Title}}">
-        <img src="/usr/uploads/Background/Cover{{.CoverList}}" alt="illustration" loading="lazy">
+        <img src="{{if .CoverList}}/usr/uploads/Background/Cover{{.CoverList}}{{else}}{{.AutoCover}}{{end}}" {{if and .CoverList .AutoCover}}onerror="this.onerror=null;this.src='{{.AutoCover}}'"{{end}} alt="illustration" loading="lazy">
     </a>
     <div>
         <p>{{ .UnixToStr }}</p>
@@ -48,10 +48,10 @@
             </div>
         </details>
         <figure x-init="parallax($el)">
-            <img id="cover" src="/usr/uploads/Background/Cover/1.webp" alt="illustration">
+            <img id="cover" src="/usr/uploads/71767119_p0.avif" alt="illustration">
         </figure>
         <svg preserveAspectRatio="xMaxYMax slice" aria-hidden="true">
-            <polygon points="2000,1600 0,1000 0,0 230,0 " fill="#882345B3"></polygon>
+            <polygon points="2000,1600 0,1000 0,0 230,0 " :fill="['#882345B3','#8A6FA6B3','#532DA6B3','#6649A6B3'][Math.floor(Math.random()*4)]"></polygon>
         </svg>
         {{if .Posts}}
             {{with index .Posts 0}}

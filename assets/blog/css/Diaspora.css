@@ -993,14 +993,20 @@ section {
 }
 
 @media screen and (max-width: 640px) {
-    #vibrant {
-        display: none;
-    }
 
-    main > div {
+
+    main{
+        &>div {
         top: 70vh;
         width: 70%;
         left: 5%;
+        }
+        & polygon {
+            display: none;
+        }
+        &>ol{
+            background: none;
+        }
     }
 
     details div ul {
