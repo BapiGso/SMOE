@@ -6,7 +6,7 @@ import (
 )
 
 func (s *Smoe) Listen() {
-	port := s.cfg.Server.Port
+	port := s.cfg.Port
 	if port == "" {
 		port = "95"
 	}

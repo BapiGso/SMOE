@@ -84,8 +84,8 @@ func TestSendCommentIntegration(t *testing.T) {
 	if err != nil {
 		t.Fatalf("read config failed: %v", err)
 	}
-	if cfg.Mail.ResendAPI == "" || cfg.Mail.To == "" {
-		t.Skip("mail.resendAPI or mail.to is empty")
+	if cfg.ResendAPI == "" || cfg.MailTo == "" {
+		t.Skip("resendAPI or mailTo is empty")
 	}
 
 	notifier := newCommentNotifier(cfg)
@@ -99,7 +99,7 @@ func TestSendCommentIntegration(t *testing.T) {
 		Comment: store.Comments{
 			Coid:   uint(time.Now().Unix()),
 			Author: "Codex Test",
-			Mail:   cfg.Mail.To,
+			Mail:   cfg.MailTo,
 			Text:   "这是一封通过 go test 发送的评论提醒测试邮件。",
 		},
 	}

@@ -10,7 +10,6 @@ import (
 	"github.com/labstack/echo/v5"
 )
 
-// SubmitArticleComment
 func SubmitArticleComment(c *echo.Context) error {
 	rateKey := "comment:" + c.RealIP()
 	if v, ok := rateMap.Load(rateKey); ok {

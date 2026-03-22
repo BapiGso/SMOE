@@ -154,8 +154,7 @@ func assignAutoCovers(posts []Contents) error {
 func toComment(fc FMComment, cid uint) Comments {
 	var url *string
 	if fc.Url != "" {
-		u := fc.Url
-		url = &u
+		url = new(fc.Url)
 	}
 	return Comments{
 		Coid:    fc.ID,
@@ -357,8 +356,7 @@ func AddComment(cidStr, author, mail, url, text string, parent, authorId uint) (
 			maxID = c.ID
 		}
 		if c.ID == parent {
-			parentCopy := toComment(c, uint(cid))
-			parentComment = &parentCopy
+			parentComment = new(toComment(c, uint(cid)))
 		}
 	}
 	if parent != 0 && parentComment == nil {
@@ -523,13 +521,13 @@ func ReadConfig() (Config, error) {
 }
 
 // GetUser looks up a user by name from config.
-func GetUser(name string) (User, error) {
+func GetUser(name string) (Config, error) {
 	cfg, err := ReadConfig()
 	if err != nil {
-		return User{}, err
+		return Config{}, err
 	}
-	if cfg.User.Name != name {
-		return User{}, fmt.Errorf("user not found")
+	if cfg.Name != name {
+		return Config{}, fmt.Errorf("user not found")
 	}
-	return cfg.User, nil
+	return cfg, nil
 }

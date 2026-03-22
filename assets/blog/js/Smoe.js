@@ -119,12 +119,22 @@ document.addEventListener('alpine:init', () => {
                 openPreview();
             },
 
-            async ajaxNextPage() {
-                const res = await fetch(`/page/${this.pageNum}`);
-                this.hasMore = res.headers.get('X-Has-More') === 'true';
-                const data = await res.text();
-                if (data.trim()) $('main > ol').insertAdjacentHTML('beforeend', data);
-                this.pageNum++;
+            async ajaxNextPage(e) {
+                const button = e.currentTarget;
+                if (button.disabled || !this.hasMore) return;
+                button.disabled = true;
+                const text = button.textContent;
+                button.textContent = '加载中...';
+                try {
+                    const res = await fetch(`/page/${this.pageNum}`);
+                    this.hasMore = res.headers.get('X-Has-More') === 'true';
+                    const data = await res.text();
+                    if (data.trim()) $('main > ol').insertAdjacentHTML('beforeend', data);
+                    this.pageNum++;
+                } finally {
+                    button.disabled = false;
+                    button.textContent = text;
+                }
             },
 
             vibrant(el) {

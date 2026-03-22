@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/labstack/echo/v5"
-	resend "github.com/resend/resend-go/v3"
+	"github.com/resend/resend-go/v3"
 )
 
 const commentNotificationKey = "comment_notification"
@@ -34,15 +34,15 @@ func ConfigureCommentNotifier(cfg store.Config) {
 }
 
 func newCommentNotifier(cfg store.Config) *commentNotifier {
-	if cfg.Mail.ResendAPI == "" || cfg.Mail.To == "" {
+	if cfg.ResendAPI == "" || cfg.MailTo == "" {
 		return &commentNotifier{}
 	}
 	return &commentNotifier{
-		client:  resend.NewClient(cfg.Mail.ResendAPI),
+		client:  resend.NewClient(cfg.ResendAPI),
 		enabled: true,
 		from:    defaultCommentFrom,
-		to:      strings.TrimSpace(cfg.Mail.To),
-		cc:      strings.TrimSpace(cfg.Mail.CC),
+		to:      strings.TrimSpace(cfg.MailTo),
+		cc:      strings.TrimSpace(cfg.MailCC),
 	}
 }
 

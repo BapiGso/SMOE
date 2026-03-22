@@ -32,7 +32,6 @@ type rssItem struct {
 }
 
 func RSS(c *echo.Context) error {
-	cfg, _ := store.ReadConfig()
 	baseURL := c.Scheme() + "://" + c.Request().Host
 
 	posts, _, err := store.GetPostsByCidDesc(20, 0)
@@ -60,9 +59,9 @@ func RSS(c *echo.Context) error {
 	feed := rssFeed{
 		Version: "2.0",
 		Channel: rssChannel{
-			Title:         cfg.User.ScreenName + "的博客",
+			Title:         "晓梦的博客",
 			Link:          baseURL,
-			Description:   cfg.User.ScreenName + "的博客",
+			Description:   "晓梦的博客",
 			LastBuildDate: lastBuild,
 			Items:         items,
 		},

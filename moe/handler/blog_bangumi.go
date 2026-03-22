@@ -58,10 +58,10 @@ func curlBGM(url string) error {
 		Timeout: 5 * time.Second,
 	}
 	request, err := http.NewRequest("GET", url, nil)
-	request.Header.Set("User-Agent", "trim21/bangumi-episode-ics (https://github.com/Trim21/bangumi-episode-calendar)")
 	if err != nil {
 		return err
 	}
+	request.Header.Set("User-Agent", "trim21/bangumi-episode-ics (https://github.com/Trim21/bangumi-episode-calendar)")
 	response, err := client.Do(request)
 	if err != nil {
 		return err
@@ -95,7 +95,7 @@ func Bangumi(c *echo.Context) error {
 	if err != nil {
 		return err
 	}
-	newAPI := "https://api.bgm.tv/v0/users/" + cfg.Bangumi.UserID + "/collections?subject_type=2&limit=100&offset=0"
+	newAPI := "https://api.bgm.tv/v0/users/" + cfg.BangumiUserID + "/collections?subject_type=2&limit=100&offset=0"
 	//每七天更新一下
 	if time.Now().Unix()-bgm.TTL > 604800 {
 		if err := curlBGM(newAPI); err != nil {

@@ -3,12 +3,13 @@ package handler
 import (
 	"SMOE/moe/mymiddleware"
 	"SMOE/moe/store"
-	"github.com/golang-jwt/jwt/v5"
-	"github.com/labstack/echo/v5"
-	"golang.org/x/crypto/bcrypt"
 	"log/slog"
 	"net/http"
 	"time"
+
+	"github.com/golang-jwt/jwt/v5"
+	"github.com/labstack/echo/v5"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func LoginGet(c *echo.Context) error {

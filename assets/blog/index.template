@@ -1,7 +1,7 @@
 {{define "post-card"}}
 <li>
     <a @click.prevent="ajaxPost($el.href)" href="/archives/{{.Cid}}" title="{{.Title}}">
-        <img src="{{if .CoverList}}/usr/uploads/Background/Cover{{.CoverList}}{{else}}{{.AutoCover}}{{end}}" {{if and .CoverList .AutoCover}}onerror="this.onerror=null;this.src='{{.AutoCover}}'"{{end}} alt="illustration" loading="lazy">
+        <img src="{{if .CoverList}}/usr/uploads/background{{.CoverList}}{{else}}{{.AutoCover}}{{end}}" {{if and .CoverList .AutoCover}}onerror="this.onerror=null;this.src='{{.AutoCover}}'"{{end}} alt="illustration" loading="lazy">
     </a>
     <div>
         <p>{{ .UnixToStr }}</p>
@@ -69,7 +69,7 @@
                 {{end}}
             </ol>
         {{end}}
-        <button x-show="hasMore" x-init="hasMore={{.HasMore}}" @click.prevent="ajaxNextPage()">加载更多</button>
+        <button x-show="hasMore" x-init="hasMore={{.HasMore}}" @click.prevent="ajaxNextPage($event)">加载更多</button>
     </main>
     {{template "footer.template"}}
 </body>
