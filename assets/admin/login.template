@@ -4,350 +4,391 @@
         <meta charset="UTF-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <!-- 引入css文件 -->
-        <!--        <link rel="stylesheet" href="/new-admin/css/login.css">-->
+        <link rel="icon" type="image/png" href="/assets/root/favicon.ico">
         <title>Welcome</title>
         <style>
             * {
-                /* 去除浏览器默认内外边距 */
                 margin: 0;
                 padding: 0;
                 box-sizing: border-box;
             }
 
-            /* 去除input的轮廓 */
-            input {
-                outline: none;
-            }
-
-            html,
-            body {
+            html, body {
                 height: 100%;
             }
 
             body {
-                /* 溢出隐藏 */
-                overflow-x: hidden;
-                display: flex;
-                /* 渐变方向从左到右 */
-                background: linear-gradient(to right, #C9E0ED, #DBBFF1);
-            }
-
-            span {
-                position: absolute;
-                z-index: 0;
-                bottom: 0;
-                border-radius: 50%;
-                /* 径向渐变 */
-                background: radial-gradient(circle at 72% 28%, #fff 3px, #ff7edf 8%, #5b5b5b, #aad7f9 100%);
-                /* 泡泡内阴影 */
-                box-shadow: inset 0 0 6px #fff,
-                inset 3px 0 6px #eaf5fc,
-                inset 2px -2px 10px #efcde6,
-                inset 0 0 60px #f9f6de,
-                0 0 20px #fff;
-                /* 动画 */
-                animation: myMove 4s linear infinite;
-            }
-
-
-            @keyframes myMove {
-                0% {
-                    transform: translateY(0%);
-                    opacity: 1;
-                }
-
-                50% {
-                    transform: translate(10%, -1000%);
-                }
-
-                75% {
-                    transform: translate(-20%, -1200%);
-                }
-
-                99% {
-                    opacity: .9;
-                }
-
-                100% {
-                    transform: translateY(-1800%) scale(1.5);
-                    opacity: 0;
-                }
-            }
-
-            /* 最外层的大盒子 */
-            .box {
-                width: 50vw;
-                height: 30vw;
-                display: flex;
-                /* 相对定位 */
-                position: relative;
-                z-index: 2;
-                margin: auto;
-                /* 设置圆角 */
-                border-radius: 8px;
-                /* 设置边框 */
-                border: 1px solid rgba(255, 255, 255, .6);
-                /* 设置盒子阴影 */
-                box-shadow: 2px 1px 19px rgba(0, 0, 0, .1);
-            }
-
-            /* 滑动的盒子 */
-            .pre-box {
-                /* 宽度为大盒子的一半 */
-                width: 25vw;
-                height: 100%;
-                /* 绝对定位 */
-                position: absolute;
-                /* 距离大盒子左侧为0 */
-                /* 距离大盒子顶部为0 */
-                z-index: 99;
-                border-radius: 4px;
-                background-color: #ded4ed;
-                box-shadow: 2px 1px 19px rgba(0, 0, 0, .1);
-                /* 动画过渡，先加速再减速 */
-                transition: 0.5s ease-in-out;
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                justify-content: center;
-                & h1{
-                    /* 文字间距 */
-                    letter-spacing: 5px;
-                    color: white;
-                    /* 禁止选中 */
-                    user-select: none;
-                    /* 文字阴影 */
-                    text-shadow: 4px 4px 3px rgba(0, 0, 0, .1);
-                }
-
-                & p{
-                    margin: 20px 0;
-                    /* 禁止选中 */
-                    user-select: none;
-                    font-weight: bold;
-                    color: white;
-                    text-shadow: 4px 4px 3px rgba(0, 0, 0, .1);
-                }
-            }
-
-
-            /* 图片盒子 */
-            .img-box {
-                width: 200px;
-                height: 200px;
-                margin: 20px auto;
-                /* 设置为圆形 */
-                border-radius: 50%;
-                /* 设置用户禁止选中 */
-                user-select: none;
                 overflow: hidden;
-                box-shadow: 4px 4px 3px rgba(0, 0, 0, .1);
-                & img{
+                display: flex;
+                background: #1a1a2e;
+
+                & canvas {
+                    position: fixed;
+                    top: 0;
+                    left: 0;
                     width: 100%;
-                    transition: 0.5s;
+                    height: 100%;
+                    z-index: 0;
                 }
-            }
 
+                & main {
+                    width: 50vw;
+                    height: 30vw;
+                    display: flex;
+                    position: relative;
+                    z-index: 2;
+                    margin: auto;
+                    border-radius: 8px;
+                    border: 1px solid rgba(255, 255, 255, .6);
+                    box-shadow: 2px 1px 19px rgba(0, 0, 0, .1);
 
-            /* 登录和注册盒子 */
-            .login-form,
-            .register-form {
-                flex: 1;
-                height: 100%;
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                justify-content: center;
-            }
+                    @media (max-width: 768px) {
+                        width: 92vw;
+                        height: 50vh;
+                    }
 
+                    @media (max-width: 480px) {
+                        width: 96vw;
+                        height: 60vh;
+                    }
 
-            /* 标题 */
-            .title-box h1 {
-                margin: 30px;
-                color: white;
-                /* 禁止选中 */
-                user-select: none;
-                letter-spacing: 5px;
-                text-shadow: 4px 4px 3px rgba(0, 0, 0, .1);
+                    & aside {
+                        width: 50%;
+                        height: 100%;
+                        position: absolute;
+                        z-index: 99;
+                        border-radius: 4px;
+                        background-color: #ded4ed;
+                        box-shadow: 2px 1px 19px rgba(0, 0, 0, .1);
+                        transition: 0.5s ease-in-out;
+                        display: flex;
+                        flex-direction: column;
+                        align-items: center;
+                        justify-content: center;
 
-            }
+                        & h1 {
+                            letter-spacing: 5px;
+                            color: white;
+                            user-select: none;
+                            text-shadow: 4px 4px 3px rgba(0, 0, 0, .1);
 
-            /* 输入框盒子 */
-            .input-box {
-                width: 100%;
-                display: flex;
-                /* 纵向布局 */
-                flex-direction: column;
-                /* 水平居中 */
-                align-items: center;
-            }
+                            @media (max-width: 480px) {
+                                font-size: 1.2rem;
+                            }
+                        }
 
-            /* 输入框 */
-            input {
-                width: 60%;
-                height: 40px;
-                margin-bottom: 25px;
-                text-indent: 10px;
-                border: 1px solid #fff;
-                background-color: rgba(255, 255, 255, 0.3);
-                border-radius: 120px;
-                /* 增加磨砂质感 */
-                backdrop-filter: blur(10px);
-                &:focus {
-                    /* 光标颜色 */
-                    color: #b0cfe9;
+                        & p {
+                            margin: 20px 0;
+                            user-select: none;
+                            font-weight: bold;
+                            color: white;
+                            text-shadow: 4px 4px 3px rgba(0, 0, 0, .1);
 
+                            @media (max-width: 480px) {
+                                margin: 10px 0;
+                            }
+                        }
+
+                        & figure {
+                            width: clamp(80px, 10vw, 200px);
+                            aspect-ratio: 1;
+                            margin: 20px auto;
+                            border-radius: 50%;
+                            user-select: none;
+                            overflow: hidden;
+                            box-shadow: 4px 4px 3px rgba(0, 0, 0, .1);
+
+                            @media (max-width: 768px) {
+                                width: clamp(60px, 18vw, 150px);
+                                margin: 10px auto;
+                            }
+
+                            & img {
+                                width: 100%;
+                                height: 100%;
+                                object-fit: cover;
+                                transition: 0.5s;
+                            }
+                        }
+                    }
+
+                    & section {
+                        flex: 1;
+                        height: 100%;
+                        display: flex;
+                        flex-direction: column;
+                        align-items: center;
+                        justify-content: center;
+
+                        & header h1 {
+                            margin: 30px;
+                            color: white;
+                            user-select: none;
+                            letter-spacing: 5px;
+                            text-shadow: 4px 4px 3px rgba(0, 0, 0, .1);
+
+                            @media (max-width: 768px) {
+                                margin: 15px;
+                                font-size: 1.3rem;
+                            }
+
+                            @media (max-width: 480px) {
+                                margin: 10px;
+                                font-size: 1.1rem;
+                            }
+                        }
+
+                        & form {
+                            width: 100%;
+                            display: flex;
+                            flex-direction: column;
+                            align-items: center;
+
+                            & input {
+                                outline: none;
+                                width: 60%;
+                                height: 40px;
+                                margin-bottom: 25px;
+                                text-indent: 10px;
+                                border: 1px solid #fff;
+                                background-color: rgba(255, 255, 255, 0.3);
+                                border-radius: 120px;
+                                backdrop-filter: blur(10px);
+
+                                &:focus {
+                                    color: #b0cfe9;
+                                }
+
+                                &:focus::placeholder {
+                                    opacity: 0;
+                                }
+
+                                @media (max-width: 768px) {
+                                    width: 75%;
+                                    height: 36px;
+                                    margin-bottom: 15px;
+                                }
+
+                                @media (max-width: 480px) {
+                                    width: 82%;
+                                    height: 32px;
+                                    margin-bottom: 12px;
+                                    font-size: 12px;
+                                }
+                            }
+
+                            & footer {
+                                display: flex;
+                                justify-content: center;
+                                align-items: center;
+
+                                & input[type="submit"] {
+                                    width: 100px;
+                                    height: 30px;
+                                    margin: 0 7px;
+                                    line-height: 30px;
+                                    border: none;
+                                    border-radius: 4px;
+                                    background-color: #69b3f0;
+                                    color: white;
+
+                                    &:hover {
+                                        cursor: pointer;
+                                        opacity: .8;
+                                    }
+                                }
+
+                                & button {
+                                    height: 30px;
+                                    line-height: 30px;
+                                    user-select: none;
+                                    font-size: 14px;
+                                    color: white;
+                                    background: none;
+                                    border: none;
+                                    cursor: pointer;
+
+                                    &:hover {
+                                        border-bottom: 1px solid white;
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
-                /* 聚焦时隐藏文字 */
-                &:focus::placeholder {
-                    opacity: 0;
-                }
-            }
-
-
-
-
-
-            /* 按钮盒子 */
-            .btn-box {
-                display: flex;
-                justify-content: center;
-            }
-
-            /* 按钮 */
-            input[type="submit"] {
-                width: 100px;
-                height: 30px;
-                margin: 0 7px;
-                line-height: 30px;
-                border: none;
-                border-radius: 4px;
-                background-color: #69b3f0;
-                color: white;
-                flex-direction: initial;
-            }
-
-            /* 按钮悬停时 */
-            input[type="submit"]:hover {
-                /* 鼠标小手 */
-                cursor: pointer;
-                /* 透明度 */
-                opacity: .8;
-            }
-
-            /* 按钮文字 */
-            .input-box p,
-            .btn-box p {
-                height: 30px;
-                line-height: 30px;
-                /* 禁止选中 */
-                user-select: none;
-                font-size: 14px;
-                color: white;
-
-            }
-
-            .input-box p:hover,
-            .btn-box p:hover {
-                cursor: pointer;
-                border-bottom: 1px solid white;
-                flex-direction: initial;
             }
         </style>
     </head>
     <body>
-        <!-- 最外层的大盒子 -->
-       <div class="box">
-        <!-- 滑动盒子 -->
-        <div class="pre-box">
-            <h1>WELCOME</h1>
-            <p>SMOE!</p>
-            <div class="img-box">
-                <img src="/assets/new-admin/img/waoku.webp" alt="">
-            </div>
-        </div>
-        <!-- 注册盒子 -->
-        <div class="register-form">
-            <!-- 标题盒子 -->
-            <div class="title-box">
-                <h1>瞬きでさえも</h1>
-            </div>
-            <!-- 输入框盒子 -->
-            <form class="input-box" action="/admin" method="post">
-                <input type="password" placeholder="挽き留めるのならば" name="illsions">
-                <div class="btn-box">
-                    <input type="submit" value="語ろう">
-                    <!-- 绑定点击事件 -->
-                    <p onclick="mySwitch()">SWITCH</p>
-                </div>
-            </form>
-        </div>
-        <!-- 登录盒子 -->
-        <div class="login-form">
-            <!-- 标题盒子 -->
-            <div class="title-box">
-                <h1>LOGIN</h1>
-            </div>
-            <!-- 输入框盒子 -->
-            <form  class="input-box" action="/admin" method="post">
-                <input type="text" placeholder="別離は時には" name="user">
-                <input type="password" placeholder="物語の終焉を意味しない" name="pwd">
-                <!-- 按钮盒子 -->
-                <div class="btn-box">
-                <input type="submit" value="語ろう">
-                    <!-- 绑定点击事件 -->
-                    <p onclick="mySwitch()">SWITCH</p>
-                </div>
-            </form >
-        </div>
-       </div>
-       <script>
-            // 滑动的状态
-             let flag=true
-             let prebox =document.getElementsByClassName('pre-box')[0]
-             let img=document.getElementsByTagName('img')[0]
-             const mySwitch=()=>{
-                if(flag){
-                    // 获取到滑动盒子的dom元素并修改它移动的位置
-                    prebox.style.transform='translateX(100%)'
-                    // 获取到滑动盒子的dom元素并修改它的背景颜色
-                    prebox.style.backgroundColor ='#c9e0ed'
-                    //修改图片的路径
-                    img.setAttribute("src","/assets/new-admin/img/wuwu.webp")
-                }
-                else {
-                    prebox.style.transform='translateX(0%)'
-                    prebox.style.backgroundColor ='#ded4ed'
-                    img.setAttribute("src","/assets/new-admin/img/waoku.webp")
-                }
-                flag=!flag
-             }
-       </script>
-       <script>
-            const bubleCreate=()=>{
-                // 获取body元素
-                const body = document.body
-                // 创建泡泡元素
-                const buble = document.createElement('span')
-                // 设置泡泡半径
-                let r = Math.random()*5 + 25 //半径大小为25~30
-                // 设置泡泡的宽高
-                buble.style.width=r+'px'
-                buble.style.height=r+'px'
-                // 设置泡泡的随机起点
-                buble.style.left=Math.random()*innerWidth+'px'
-                // 为body添加buble元素
-                body.append(buble)
-                // 4s清除一次泡泡
-                setTimeout(()=>{
-                    buble.remove()
-                },4000)
+        <canvas></canvas>
+        <main>
+            <aside>
+                <h1>WELCOME</h1>
+                <p>SMOE!</p>
+                <figure>
+                    <img src="/assets/admin/img/waoku.webp" alt="">
+                </figure>
+            </aside>
+            <section>
+                <header><h1>瞬きでさえも</h1></header>
+                <form action="/admin" method="post">
+                    <input type="password" placeholder="挽き留めるのならば" name="illsions">
+                    <footer>
+                        <input type="submit" value="語ろう">
+                        <button type="button">SWITCH</button>
+                    </footer>
+                </form>
+            </section>
+            <section>
+                <header><h1>LOGIN</h1></header>
+                <form action="/admin" method="post">
+                    <input type="text" placeholder="別離は時には" name="user">
+                    <input type="password" placeholder="物語の終焉を意味しない" name="pwd">
+                    <footer>
+                        <input type="submit" value="語ろう">
+                        <button type="button">SWITCH</button>
+                    </footer>
+                </form>
+            </section>
+        </main>
+        <script>
+            let flag = true
+            const aside = document.querySelector('aside')
+            const avatar = aside.querySelector('img')
+            document.querySelectorAll('button').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    if (flag) {
+                        aside.style.transform = 'translateX(100%)'
+                        aside.style.backgroundColor = '#c9e0ed'
+                        avatar.src = '/assets/admin/img/wuwu.webp'
+                    } else {
+                        aside.style.transform = 'translateX(0%)'
+                        aside.style.backgroundColor = '#ded4ed'
+                        avatar.src = '/assets/admin/img/waoku.webp'
+                    }
+                    flag = !flag
+                })
+            })
+        </script>
+        <script>
+            const canvas = document.querySelector('canvas')
+            const ctx = canvas.getContext('2d')
+
+            function resize() {
+                canvas.width = innerWidth
+                canvas.height = innerHeight
             }
-            // 每200ms生成一个泡泡
-            setInterval(() => {
-                bubleCreate()
-            }, 200);
+            resize()
+            addEventListener('resize', resize)
+
+            const particles = []
+            const PARTICLE_COUNT = 70
+
+            class Particle {
+                constructor() {
+                    this.x = Math.random() * canvas.width
+                    this.y = Math.random() * canvas.height
+                    this.size = Math.random() * 2.5 + 0.5
+                    this.speedX = (Math.random() - 0.5) * 0.4
+                    this.speedY = (Math.random() - 0.5) * 0.4
+                    this.opacity = Math.random() * 0.5 + 0.2
+                }
+                update() {
+                    this.x += this.speedX
+                    this.y += this.speedY
+                    if (this.x < 0 || this.x > canvas.width) this.speedX *= -1
+                    if (this.y < 0 || this.y > canvas.height) this.speedY *= -1
+                }
+                draw() {
+                    ctx.beginPath()
+                    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2)
+                    ctx.fillStyle = `rgba(255,255,255,${this.opacity})`
+                    ctx.fill()
+                }
+            }
+
+            for (let i = 0; i < PARTICLE_COUNT; i++) particles.push(new Particle())
+
+            const bubbles = []
+            const BUBBLE_COUNT = 12
+
+            class Bubble {
+                constructor(scattered) {
+                    this.x = Math.random() * canvas.width
+                    this.y = scattered ? Math.random() * canvas.height : canvas.height + Math.random() * 100
+                    this.radius = Math.random() * 18 + 8
+                    this.speedY = -(Math.random() * 0.8 + 0.3)
+                    this.speedX = (Math.random() - 0.5) * 0.2
+                    this.opacity = Math.random() * 0.25 + 0.08
+                    this.phase = Math.random() * Math.PI * 2
+                }
+                reset() {
+                    this.x = Math.random() * canvas.width
+                    this.y = canvas.height + this.radius * 2
+                    this.radius = Math.random() * 18 + 8
+                    this.speedY = -(Math.random() * 0.8 + 0.3)
+                    this.opacity = Math.random() * 0.25 + 0.08
+                }
+                update() {
+                    this.y += this.speedY
+                    this.phase += 0.015
+                    this.x += this.speedX + Math.sin(this.phase) * 0.4
+                    if (this.y < -this.radius * 2) this.reset()
+                }
+                draw() {
+                    const grad = ctx.createRadialGradient(
+                        this.x - this.radius * 0.3, this.y - this.radius * 0.3, this.radius * 0.05,
+                        this.x, this.y, this.radius
+                    )
+                    grad.addColorStop(0, `rgba(255,255,255,${this.opacity * 1.8})`)
+                    grad.addColorStop(0.4, `rgba(170,215,249,${this.opacity})`)
+                    grad.addColorStop(1, `rgba(219,191,241,${this.opacity * 0.2})`)
+                    ctx.beginPath()
+                    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2)
+                    ctx.fillStyle = grad
+                    ctx.fill()
+                    ctx.beginPath()
+                    ctx.arc(this.x - this.radius * 0.28, this.y - this.radius * 0.28, this.radius * 0.13, 0, Math.PI * 2)
+                    ctx.fillStyle = `rgba(255,255,255,${this.opacity * 2.5})`
+                    ctx.fill()
+                }
+            }
+
+            for (let i = 0; i < BUBBLE_COUNT; i++) bubbles.push(new Bubble(true))
+
+            function drawBackground() {
+                const grad = ctx.createLinearGradient(0, 0, canvas.width, 0)
+                grad.addColorStop(0, '#C9E0ED')
+                grad.addColorStop(1, '#DBBFF1')
+                ctx.fillStyle = grad
+                ctx.fillRect(0, 0, canvas.width, canvas.height)
+            }
+
+            function drawConnections() {
+                for (let i = 0; i < particles.length; i++) {
+                    for (let j = i + 1; j < particles.length; j++) {
+                        const dx = particles[i].x - particles[j].x
+                        const dy = particles[i].y - particles[j].y
+                        const dist = dx * dx + dy * dy
+                        if (dist < 14400) {
+                            ctx.beginPath()
+                            ctx.moveTo(particles[i].x, particles[i].y)
+                            ctx.lineTo(particles[j].x, particles[j].y)
+                            ctx.strokeStyle = `rgba(255,255,255,${0.12 * (1 - Math.sqrt(dist) / 120)})`
+                            ctx.lineWidth = 0.5
+                            ctx.stroke()
+                        }
+                    }
+                }
+            }
+
+            ;(function animate() {
+                drawBackground()
+                particles.forEach(p => { p.update(); p.draw() })
+                drawConnections()
+                bubbles.forEach(b => { b.update(); b.draw() })
+                requestAnimationFrame(animate)
+            })()
         </script>
     </body>
 </html>
