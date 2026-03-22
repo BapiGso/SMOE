@@ -22,6 +22,15 @@ func Post(c *echo.Context) error {
 	if err != nil {
 		return echo.ErrNotFound
 	}
+
+	// 防刷浏览量：同一 IP + cid 只计一次
+	cidStr := fmt.Sprintf("%d", req.Cid)
+	viewKey := "view:" + c.RealIP() + ":" + cidStr
+	if _, loaded := rateMap.LoadOrStore(viewKey, struct{}{}); !loaded {
+		_ = store.IncrementViews(cidStr)
+		content.Views++
+	}
+
 	if strings.Contains(c.Request().Header.Get(echo.HeaderAccept), "text/markdown") {
 		return renderMarkdown(c, content)
 	}
