@@ -6,6 +6,71 @@
 document.addEventListener('alpine:init', () => {
     Alpine.data('smoe', () => {
         const preview = Object.assign(document.createElement('aside'));
+        const resetCopyState = (pre) => {
+            delete pre.dataset.copied;
+            delete pre.dataset.error;
+            pre.dataset.copyTip = 'Click to copy';
+        };
+
+        const fallbackCopyText = (text) => {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.setAttribute('readonly', '');
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            textarea.style.pointerEvents = 'none';
+            document.body.append(textarea);
+            textarea.focus();
+            textarea.select();
+            const copied = document.execCommand('copy');
+            textarea.remove();
+            if (!copied) throw new Error('copy failed');
+        };
+
+        const copyText = async (text) => {
+            if (navigator.clipboard?.writeText && window.isSecureContext) {
+                return navigator.clipboard.writeText(text);
+            }
+            fallbackCopyText(text);
+        };
+
+        const handleCodeCopy = async (pre) => {
+            const code = pre.querySelector('code');
+            const text = (code ? code.innerText : pre.innerText).replace(/\n$/, '');
+
+            clearTimeout(pre._copyTimer);
+            try {
+                await copyText(text);
+                delete pre.dataset.error;
+                pre.dataset.copied = '';
+                pre.dataset.copyTip = 'Copied';
+            } catch {
+                delete pre.dataset.copied;
+                pre.dataset.error = '';
+                pre.dataset.copyTip = 'Copy failed';
+            }
+
+            pre._copyTimer = setTimeout(() => resetCopyState(pre), 1600);
+        };
+
+        const enhanceCodeBlocks = (root = document) => {
+            root.querySelectorAll('.markdown-body pre').forEach(pre => {
+                if (pre.dataset.copyReady === '1') return;
+                pre.dataset.copyReady = '1';
+                pre.dataset.copyTip = 'Click to copy';
+                pre.setAttribute('aria-label', 'Click to copy code');
+                pre.addEventListener('click', async (event) => {
+                    if (window.getSelection()?.toString()) return;
+                    event.stopPropagation();
+                    await handleCodeCopy(pre);
+                });
+                pre.addEventListener('keydown', async (event) => {
+                    if (event.key !== 'Enter' && event.key !== ' ') return;
+                    event.preventDefault();
+                    await handleCodeCopy(pre);
+                });
+            });
+        };
 
         const openPreview = () => {
             document.body.insertAdjacentElement('afterbegin', preview);
@@ -100,6 +165,7 @@ document.addEventListener('alpine:init', () => {
 
             init() {
                 if (this.darkMode) document.documentElement.dataset.theme = 'dark';
+                enhanceCodeBlocks(document);
                 window.$ = (selector) => document.querySelector(selector);
                 window.onpopstate = (e) => {
                     if (!e.state) return (location.href = location.origin);
@@ -112,6 +178,7 @@ document.addEventListener('alpine:init', () => {
             async ajaxPost(url) {
                 const doc = new DOMParser().parseFromString(await (await fetch(url)).text(), 'text/html');
                 preview.innerHTML = doc.body.innerHTML;
+                enhanceCodeBlocks(preview);
                 history.replaceState({ t: document.title, u: location.origin }, '', location.href);
                 history.pushState({ t: doc.title, u: url }, '', url);
                 document.title = doc.title;

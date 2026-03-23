@@ -1252,3 +1252,122 @@
   min-height: 52px;
 }
 
+/* Front-end overrides for chroma output */
+.markdown-body pre,
+.markdown-body .highlight pre {
+  position: relative;
+  display: block;
+  inline-size: 100%;
+  max-inline-size: 100%;
+  margin: var(--base-size-16) 0;
+  padding: var(--base-size-16) !important;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background-color: #f3f4f6 !important;
+  cursor: copy;
+  white-space: pre-wrap !important;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+html[data-theme="dark"] .markdown-body pre,
+html[data-theme="dark"] .markdown-body .highlight pre {
+  background-color: #f3f4f6 !important;
+}
+
+.markdown-body pre code,
+.markdown-body pre>code {
+  display: block;
+  inline-size: auto;
+  min-inline-size: 0;
+  tab-size: 4;
+  white-space: inherit !important;
+  word-break: inherit;
+  overflow-wrap: inherit;
+}
+
+.markdown-body pre code>span,
+.markdown-body pre>code>span {
+  display: block !important;
+  inline-size: auto !important;
+  min-inline-size: 0;
+  white-space: inherit !important;
+  word-break: inherit;
+  overflow-wrap: inherit;
+}
+
+.markdown-body pre code span,
+.markdown-body pre>code span {
+  min-inline-size: 0;
+  white-space: inherit !important;
+  word-break: inherit;
+  overflow-wrap: inherit;
+}
+
+.markdown-body pre:focus-visible {
+  outline: 2px solid var(--c-accent);
+  outline-offset: 2px;
+}
+
+.markdown-body pre[data-copy-ready]::before {
+  content: attr(data-copy-tip);
+  position: absolute;
+  right: 0;
+  top: -8px;
+  z-index: 2;
+  pointer-events: none;
+  padding: 5px 8px;
+  background: rgba(32, 32, 32, .88);
+  color: #fff;
+  font-size: 11px;
+  line-height: 1;
+  white-space: nowrap;
+  transform: translateY(-100%);
+  opacity: 0;
+  transition: opacity .16s ease, transform .16s ease;
+}
+
+.markdown-body pre[data-copy-ready]:hover::before,
+.markdown-body pre[data-copy-ready]:focus-visible::before,
+.markdown-body pre[data-copy-ready][data-copied]::before,
+.markdown-body pre[data-copy-ready][data-error]::before {
+  opacity: 1;
+  transform: translateY(calc(-100% - 2px));
+}
+
+.markdown-body pre[data-copy-ready][data-error]::before {
+  background: rgba(180, 58, 58, .92);
+}
+
+.markdown-body ul:not(.no-list) > li {
+  list-style-type: disc;
+}
+
+.markdown-body ul ul:not(.no-list) > li,
+.markdown-body ol ul:not(.no-list) > li {
+  list-style-type: circle;
+}
+
+.markdown-body ul ul ul:not(.no-list) > li,
+.markdown-body ul ol ul:not(.no-list) > li,
+.markdown-body ol ul ul:not(.no-list) > li,
+.markdown-body ol ol ul:not(.no-list) > li {
+  list-style-type: square;
+}
+
+.markdown-body ol:not(.no-list) > li {
+  list-style-type: decimal;
+}
+
+.markdown-body ul ol:not(.no-list) > li,
+.markdown-body ol ol:not(.no-list) > li {
+  list-style-type: lower-roman;
+}
+
+.markdown-body ul ul ol:not(.no-list) > li,
+.markdown-body ul ol ol:not(.no-list) > li,
+.markdown-body ol ul ol:not(.no-list) > li,
+.markdown-body ol ol ol:not(.no-list) > li {
+  list-style-type: lower-alpha;
+}
