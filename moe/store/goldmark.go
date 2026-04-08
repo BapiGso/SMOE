@@ -2,7 +2,6 @@ package store
 
 import (
 	latex "github.com/aziis98/goldmark-latex"
-	figure "github.com/mangoumbrella/goldmark-figure"
 	"github.com/yuin/goldmark"
 	highlighting "github.com/yuin/goldmark-highlighting"
 	"github.com/yuin/goldmark/extension"
@@ -16,7 +15,7 @@ var goldMark = goldmark.New(
 	goldmark.WithExtensions(
 		extension.GFM,
 		extension.Linkify,
-		figure.Figure.WithSkipNoCaption(),
+		//figure.Figure.WithSkipNoCaption(),
 		&frontmatter.Extender{},
 		&mermaid.Extender{
 			MermaidURL: "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js",

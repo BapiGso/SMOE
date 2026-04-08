@@ -3,15 +3,14 @@ module SMOE
 go 1.26
 
 require (
-	github.com/andybalholm/brotli v1.2.0
+	github.com/andybalholm/brotli v1.2.1
 	github.com/aziis98/goldmark-latex v0.0.0-20220412232851-e4525c017227
-	github.com/go-playground/validator/v10 v10.30.1
+	github.com/go-playground/validator/v10 v10.30.2
 	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/labstack/echo-jwt/v5 v5.0.1
-	github.com/labstack/echo/v5 v5.0.4
-	github.com/mangoumbrella/goldmark-figure v1.4.0
-	github.com/resend/resend-go/v3 v3.2.0
-	github.com/yuin/goldmark v1.7.17
+	github.com/labstack/echo/v5 v5.1.0
+	github.com/resend/resend-go/v3 v3.3.0
+	github.com/yuin/goldmark v1.8.2
 	github.com/yuin/goldmark-highlighting v0.0.0-20220208100518-594be1970594
 	go.abhg.dev/goldmark/frontmatter v0.3.0
 	go.abhg.dev/goldmark/mermaid v0.6.0
