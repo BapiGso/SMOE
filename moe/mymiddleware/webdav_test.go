@@ -28,7 +28,7 @@ func setupWebDAVEnv(t *testing.T, username, password string) {
 		t.Fatal(err)
 	}
 	// bcrypt hash 含 $ 等特殊字符，用单引号包裹以免 YAML 误解析
-	config := fmt.Sprintf("user:\n  name: %s\n  password: '%s'\n", username, hash)
+	config := fmt.Sprintf("name: %s\npassword: '%s'\n", username, hash)
 	if err := os.WriteFile(filepath.Join(tmpDir, "usr", "config.yaml"), []byte(config), 0644); err != nil {
 		t.Fatal(err)
 	}

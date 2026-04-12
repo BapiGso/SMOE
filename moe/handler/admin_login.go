@@ -5,23 +5,17 @@ import (
 	"SMOE/moe/store"
 	"log/slog"
 	"net/http"
-	"time"
 
-	"github.com/golang-jwt/jwt/v5"
 	"github.com/labstack/echo/v5"
 	"golang.org/x/crypto/bcrypt"
 )
 
 func LoginGet(c *echo.Context) error {
-	user, ok := c.Get("user").(*jwt.Token)
-	if !ok {
-		return c.Render(http.StatusOK, "login.template", nil)
-	}
-	if user.Valid { // 校验token
+	if mymiddleware.IsAdminLoggedIn(c) {
 		slog.Info("someone login")
 		return c.Render(http.StatusOK, "admin.template", nil)
 	}
-	return echo.ErrUnauthorized
+	return c.Render(http.StatusOK, "login.template", nil)
 }
 
 func LoginPost(c *echo.Context) error {
@@ -42,18 +36,9 @@ func LoginPost(c *echo.Context) error {
 	}
 	//计算提交表单的密码与盐 scrypt和数据库中密码是否一致
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Pwd)); err == nil {
-		token := jwt.NewWithClaims(jwt.SigningMethodHS256, &jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 24 * 7)), //过期日期设置7天
-		})
-		t, err := token.SignedString(mymiddleware.JWTKey)
-		if err != nil {
+		if err := mymiddleware.LoginAdmin(c, user.Name); err != nil {
 			return err
 		}
-		c.SetCookie(&http.Cookie{
-			Name:     "smoe_token",
-			Value:    t,
-			HttpOnly: true,
-		})
 		return c.Redirect(302, "/admin")
 	}
 	//TODO 发邮件提醒和防爆破

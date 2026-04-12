@@ -4,9 +4,26 @@ import (
 	"SMOE/moe/store"
 	"fmt"
 	"strings"
+	"sync"
+	"time"
 
 	"github.com/labstack/echo/v5"
 )
+
+var viewedPosts sync.Map
+
+func init() {
+	go func() {
+		ticker := time.NewTicker(6 * time.Hour)
+		defer ticker.Stop()
+		for range ticker.C {
+			viewedPosts.Range(func(key, _ any) bool {
+				viewedPosts.Delete(key)
+				return true
+			})
+		}
+	}()
+}
 
 func Post(c *echo.Context) error {
 	req := &struct {
@@ -26,7 +43,7 @@ func Post(c *echo.Context) error {
 	// 防刷浏览量：同一 IP + cid 只计一次
 	cidStr := fmt.Sprintf("%d", req.Cid)
 	viewKey := "view:" + c.RealIP() + ":" + cidStr
-	if _, loaded := rateMap.LoadOrStore(viewKey, struct{}{}); !loaded {
+	if _, loaded := viewedPosts.LoadOrStore(viewKey, struct{}{}); !loaded {
 		_ = store.IncrementViews(cidStr)
 		content.Views++
 	}

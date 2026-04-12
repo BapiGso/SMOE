@@ -17,7 +17,6 @@ var davHandler = &webdav.Handler{
 }
 
 // WebDAV returns a Pre middleware that serves /webdav/* with HTTP Basic Auth.
-// Must be registered before Brotli so WebDAV responses are not Brotli-wrapped.
 func WebDAV() echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c *echo.Context) error {

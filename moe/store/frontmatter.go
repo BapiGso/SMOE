@@ -1,9 +1,12 @@
 package store
 
 import (
+	"bytes"
+	"errors"
 	"os"
 	"strings"
 
+	"github.com/adrg/frontmatter"
 	"gopkg.in/yaml.v3"
 )
 
@@ -14,16 +17,16 @@ func ParseFile(path string) (FrontMatter, string, error) {
 	if err != nil {
 		return FrontMatter{}, "", err
 	}
-	// Strip the opening "---\n" then split on the closing "\n---"
-	content := strings.TrimPrefix(string(data), "---\n")
-	yamlStr, body, _ := strings.Cut(content, "\n---")
-	body = strings.TrimLeft(body, "\r\n")
 
 	var fm FrontMatter
-	if err := yaml.Unmarshal([]byte(yamlStr), &fm); err != nil {
+	body, err := frontmatter.Parse(bytes.NewReader(data), &fm)
+	if err != nil && !errors.Is(err, frontmatter.ErrNotFound) {
 		return FrontMatter{}, "", err
 	}
-	return fm, body, nil
+	if errors.Is(err, frontmatter.ErrNotFound) {
+		return fm, string(data), nil
+	}
+	return fm, strings.TrimLeft(string(body), "\r\n"), nil
 }
 
 // WriteFile writes FrontMatter + body back to a .md file.

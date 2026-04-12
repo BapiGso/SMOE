@@ -37,6 +37,7 @@ func New() *Smoe {
 	}
 	s := &Smoe{cfg: cfg}
 	mymiddleware.ConfigureCommentNotifier(cfg)
+	mymiddleware.ConfigureAdminSession(cfg)
 	s.themeFS = &assets.Assets
 	s.e = echo.New()
 	return s
