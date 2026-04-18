@@ -30,10 +30,9 @@ func Write(c *echo.Context) error {
 				return c.Redirect(302, "/admin/write/0")
 			}
 			qpu := &store.QPU{Contents: []store.Contents{content}}
-			return c.Render(200, "write.template", qpu.Json())
+			return c.Render(200, "write.template", qpu)
 		}
-		qpu := &store.QPU{}
-		return c.Render(200, "write.template", qpu.Json())
+		return c.Render(200, "write.template", &store.QPU{})
 	case "POST":
 		if _, err := store.SavePost("POST", 0, req.Title, req.Text, req.Status, req.CoverList, req.MusicList); err != nil {
 			return err

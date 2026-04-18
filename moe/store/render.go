@@ -3,26 +3,25 @@ package store
 import (
 	"bytes"
 	"crypto/md5"
-	"encoding/json"
 	"fmt"
+	"html/template"
 	"strings"
 	"time"
 	"unicode/utf8"
-	"unsafe"
 )
 
 // --- Contents methods ---
 
 // MD2HTML markdown转换为html
-func (c Contents) MD2HTML() string {
+func (c Contents) MD2HTML() template.HTML {
 	var buf bytes.Buffer
-	_ = goldMark.Convert(*(*[]byte)(unsafe.Pointer(&c.Text)), &buf)
-	return buf.String()
+	_ = goldMark.Convert([]byte(c.Text), &buf)
+	return template.HTML(buf.String())
 }
 
 // MDSub 截取前70个字符作为摘要（Markdown→HTML→纯文本）
 func (c Contents) MDSub() string {
-	html := c.MD2HTML()
+	html := string(c.MD2HTML())
 	var b strings.Builder
 	inTag := false
 	for _, r := range html {
@@ -45,7 +44,7 @@ func (c Contents) MDSub() string {
 
 // MDCount 计算文章字数
 func (c Contents) MDCount() int {
-	return utf8.RuneCount(*(*[]byte)(unsafe.Pointer(&c.Text)))
+	return utf8.RuneCountInString(c.Text)
 }
 
 func (c Contents) UnixToStr() string {
@@ -65,18 +64,21 @@ func (c Comments) UnixFormat() string {
 	return (time.Unix(c.Created, 0)).Format("2006年01月02日")
 }
 
+// MD5Mail 返回 Gravatar 约定的小写+trim 后的邮箱哈希。
 func (c Comments) MD5Mail() string {
-	data := md5.Sum([]byte(c.Mail))
+	key := strings.ToLower(strings.TrimSpace(c.Mail))
+	data := md5.Sum([]byte(key))
 	return fmt.Sprintf("%x", data)
 }
 
-func (c Comments) SubText() string {
+func (c Comments) SubText() template.HTML {
 	runes := []rune(c.Text)
 	if len(runes) <= 20 {
-		return c.Text
+		return template.HTML(template.HTMLEscapeString(c.Text))
 	}
-	more := fmt.Sprintf(`...<a class="tooltip" data-tooltip="%v">查看更多</a>`, c.Text)
-	return string(runes[:20]) + more
+	prefix := template.HTMLEscapeString(string(runes[:20]))
+	tooltip := template.HTMLEscapeString(c.Text)
+	return template.HTML(fmt.Sprintf(`%s...<a class="tooltip" data-tooltip="%s">查看更多</a>`, prefix, tooltip))
 }
 
 // --- QPU methods ---
@@ -96,13 +98,4 @@ func GroupComments(data []Comments) [][]Comments {
 		}
 	}
 	return groups
-}
-
-// Json 转为json字符串以供Alpine JS调用
-func (q *QPU) Json() string {
-	marshal, err := json.Marshal(q)
-	if err != nil {
-		return err.Error()
-	}
-	return string(marshal)
 }

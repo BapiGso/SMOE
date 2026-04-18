@@ -8,7 +8,6 @@ import (
 	"strconv"
 	"strings"
 	"sync"
-	"text/template"
 	"time"
 
 	"gopkg.in/yaml.v3"
@@ -23,7 +22,13 @@ const (
 
 // --- concurrency ---
 
-var fileMutexes sync.Map
+// 所有对同一篇 post 的读写都通过 cid 取锁；标题改名后锁依然指向同一篇。
+var cidMutexes sync.Map
+
+func getCidMutex(cid int) *sync.Mutex {
+	v, _ := cidMutexes.LoadOrStore(cid, &sync.Mutex{})
+	return v.(*sync.Mutex)
+}
 
 func parseRFC3339(s string) int64 {
 	t, err := time.Parse(time.RFC3339, s)
@@ -31,11 +36,6 @@ func parseRFC3339(s string) int64 {
 		return 0
 	}
 	return t.Unix()
-}
-
-func getFileMutex(path string) *sync.Mutex {
-	v, _ := fileMutexes.LoadOrStore(path, &sync.Mutex{})
-	return v.(*sync.Mutex)
 }
 
 // --- core helpers ---
@@ -139,6 +139,55 @@ func listAutoCovers() ([]string, error) {
 	return covers, nil
 }
 
+// publishedCidsDesc 仅扫目录（不解析 markdown），挑出已发布文章的 cid 并按时间倒序返回。
+// 用于给单篇文章页的 AutoCover 算"位置"。
+func publishedCidsDesc() ([]int, error) {
+	entries, err := os.ReadDir(postsDir)
+	if err != nil {
+		return nil, err
+	}
+	var cids []int
+	for _, e := range entries {
+		name, ok := strings.CutSuffix(e.Name(), ".md")
+		if e.IsDir() || !ok {
+			continue
+		}
+		cid, valid := cidFromName(name)
+		if !valid {
+			continue
+		}
+		// 单独再解析一次状态：draft/private 不参与封面位置。
+		fm, _, perr := ParseFile(filepath.Join(postsDir, e.Name()))
+		if perr != nil || fmStatus(fm) != "publish" {
+			continue
+		}
+		cids = append(cids, cid)
+	}
+	sort.Sort(sort.Reverse(sort.IntSlice(cids)))
+	return cids, nil
+}
+
+// coverForCid 为单篇文章页选封面：保持与列表页一致的"按位置轮换"分配。
+// 逻辑：已发布文章按 cid 倒序排列后，该文章的下标决定用哪张封面。
+func coverForCid(cid int) (string, error) {
+	covers, err := listAutoCovers()
+	if err != nil || len(covers) == 0 {
+		return "", err
+	}
+	cids, err := publishedCidsDesc()
+	if err != nil {
+		return "", err
+	}
+	for i, c := range cids {
+		if c == cid {
+			return "/usr/uploads/background" + covers[i%len(covers)], nil
+		}
+	}
+	return "", nil
+}
+
+// assignAutoCovers 按列表中每篇文章的位置（i）轮换封面，
+// 和列表页原本的行为一致；posts 必须已经按 cid 倒序排好。
 func assignAutoCovers(posts []Contents) error {
 	covers, err := listAutoCovers()
 	if err != nil || len(covers) == 0 {
@@ -154,7 +203,8 @@ func assignAutoCovers(posts []Contents) error {
 func toComment(fc FMComment, cid uint) Comments {
 	var url *string
 	if fc.Url != "" {
-		url = new(fc.Url)
+		u := fc.Url
+		url = &u
 	}
 	return Comments{
 		Coid:    fc.ID,
@@ -239,19 +289,6 @@ func GetAllPages() ([]Contents, error) {
 	return pages, nil
 }
 
-func autoCoverForCid(cid int) (string, error) {
-	posts, err := GetAllPublishedPosts()
-	if err != nil {
-		return "", err
-	}
-	for _, post := range posts {
-		if post.Cid == cid {
-			return post.AutoCover, nil
-		}
-	}
-	return "", nil
-}
-
 // GetPostByCid returns a published post and its approved comments.
 func GetPostByCid(cid int) (Contents, []Comments, error) {
 	path, title, err := postPath(cid)
@@ -273,7 +310,7 @@ func GetPostByCid(cid int) (Contents, []Comments, error) {
 	}
 	sort.Slice(approved, func(i, j int) bool { return approved[i].Created < approved[j].Created })
 	content := ToContents(fm, title, body, "post", cid)
-	cover, err := autoCoverForCid(cid)
+	cover, err := coverForCid(cid)
 	if err != nil {
 		return Contents{}, nil, err
 	}
@@ -331,20 +368,21 @@ func GetContentByCid(cid int) (Contents, error) {
 }
 
 // AddComment appends a new comment to a post's front matter.
+// 原始内容按原文落盘，HTML 转义由模板引擎（html/template）在渲染时完成。
 func AddComment(cidStr, author, mail, url, text string, parent, authorId uint) (CommentNotification, error) {
 	cid, err := strconv.Atoi(cidStr)
 	if err != nil {
 		return CommentNotification{}, fmt.Errorf("invalid cid: %s", cidStr)
 	}
+
+	mu := getCidMutex(cid)
+	mu.Lock()
+	defer mu.Unlock()
+
 	path, title, err := postPath(cid)
 	if err != nil {
 		return CommentNotification{}, err
 	}
-
-	mu := getFileMutex(path)
-	mu.Lock()
-	defer mu.Unlock()
-
 	fm, body, err := ParseFile(path)
 	if err != nil {
 		return CommentNotification{}, err
@@ -356,7 +394,8 @@ func AddComment(cidStr, author, mail, url, text string, parent, authorId uint) (
 			maxID = c.ID
 		}
 		if c.ID == parent {
-			parentComment = new(toComment(c, uint(cid)))
+			pc := toComment(c, uint(cid))
+			parentComment = &pc
 		}
 	}
 	if parent != 0 && parentComment == nil {
@@ -366,10 +405,10 @@ func AddComment(cidStr, author, mail, url, text string, parent, authorId uint) (
 	created := time.Now().Format(time.RFC3339)
 	newComment := FMComment{
 		ID:      maxID + 1,
-		Author:  template.HTMLEscapeString(author),
+		Author:  author,
 		Mail:    mail,
 		Url:     url,
-		Content: template.HTMLEscapeString(text),
+		Content: text,
 		Created: created,
 		Parent:  parent,
 		Status:  "waiting",
@@ -395,15 +434,15 @@ func IncrementViews(cidStr string) error {
 	if err != nil {
 		return nil
 	}
+
+	mu := getCidMutex(cid)
+	mu.Lock()
+	defer mu.Unlock()
+
 	path, _, err := postPath(cid)
 	if err != nil {
 		return err
 	}
-
-	mu := getFileMutex(path)
-	mu.Lock()
-	defer mu.Unlock()
-
 	fm, body, err := ParseFile(path)
 	if err != nil {
 		return err
@@ -418,15 +457,15 @@ func IncrementLikes(cidStr string) error {
 	if err != nil {
 		return nil
 	}
+
+	mu := getCidMutex(cid)
+	mu.Lock()
+	defer mu.Unlock()
+
 	path, _, err := postPath(cid)
 	if err != nil {
 		return err
 	}
-
-	mu := getFileMutex(path)
-	mu.Lock()
-	defer mu.Unlock()
-
 	fm, body, err := ParseFile(path)
 	if err != nil {
 		return err
@@ -436,10 +475,15 @@ func IncrementLikes(cidStr string) error {
 }
 
 // SavePost creates (POST) or updates (PUT) a post file.
+// 所有 I/O 都在 cid 锁内进行，避免与 AddComment / IncrementViews 竞争。
 func SavePost(method string, cid int, title, text, status, cover, music string) (int, error) {
 	if method == "POST" {
 		cid = int(time.Now().Unix())
 	}
+
+	mu := getCidMutex(cid)
+	mu.Lock()
+	defer mu.Unlock()
 
 	newPath := filepath.Join(postsDir, postFileName(cid, title))
 
@@ -451,16 +495,11 @@ func SavePost(method string, cid int, title, text, status, cover, music string) 
 			if parseErr == nil {
 				fm = existing // preserve views, likes, comments
 			}
-			// remove old file if name changed
 			if oldPath != newPath {
 				os.Remove(oldPath)
 			}
 		}
 	}
-
-	mu := getFileMutex(newPath)
-	mu.Lock()
-	defer mu.Unlock()
 
 	fm.Cover = cover
 	fm.Music = music

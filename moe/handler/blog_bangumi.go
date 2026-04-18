@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"sort"
+	"sync"
 	"time"
 
 	"github.com/labstack/echo/v5"
@@ -53,54 +54,89 @@ type NewBangumi struct {
 	Offset int `json:"offset"`
 }
 
-func curlBGM(url string) error {
-	client := &http.Client{
-		Timeout: 5 * time.Second,
+// bangumi 缓存：并发读写安全，失败时会写入 lastAttempt 做短期退避。
+type bangumiCache struct {
+	mu          sync.RWMutex
+	data        NewBangumi
+	fetchedAt   time.Time
+	lastAttempt time.Time
+}
+
+const (
+	bangumiTTL        = 7 * 24 * time.Hour
+	bangumiRetryAfter = 10 * time.Minute
+)
+
+var bgm bangumiCache
+
+func (b *bangumiCache) shouldRefresh() bool {
+	b.mu.RLock()
+	defer b.mu.RUnlock()
+	now := time.Now()
+	if now.Sub(b.fetchedAt) < bangumiTTL {
+		return false
 	}
-	request, err := http.NewRequest("GET", url, nil)
+	if now.Sub(b.lastAttempt) < bangumiRetryAfter {
+		return false
+	}
+	return true
+}
+
+func (b *bangumiCache) snapshot() NewBangumi {
+	b.mu.RLock()
+	defer b.mu.RUnlock()
+	return b.data
+}
+
+func (b *bangumiCache) storeResult(data NewBangumi, ok bool) {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	now := time.Now()
+	b.lastAttempt = now
+	if ok {
+		b.data = data
+		b.fetchedAt = now
+	}
+}
+
+func fetchBangumi(url string) (NewBangumi, error) {
+	var zero NewBangumi
+	client := &http.Client{Timeout: 5 * time.Second}
+	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		return err
+		return zero, err
 	}
-	request.Header.Set("User-Agent", "trim21/bangumi-episode-ics (https://github.com/Trim21/bangumi-episode-calendar)")
-	response, err := client.Do(request)
+	req.Header.Set("User-Agent", "trim21/bangumi-episode-ics (https://github.com/Trim21/bangumi-episode-calendar)")
+
+	resp, err := client.Do(req)
 	if err != nil {
-		return err
+		return zero, err
 	}
-	defer response.Body.Close()
-	body, err := io.ReadAll(response.Body)
+	defer resp.Body.Close()
+	if resp.StatusCode >= 400 {
+		return zero, echo.NewHTTPError(resp.StatusCode, "bangumi upstream error")
+	}
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return err
+		return zero, err
 	}
-	m := NewBangumi{}
+	var m NewBangumi
 	if err := json.Unmarshal(body, &m); err != nil {
-		return err
+		return zero, err
 	}
-	sort.Slice(m.Data, func(i, j int) bool {
-		return m.Data[i].Subject.ID < m.Data[j].Subject.ID
-	})
-	bgm = bgmCache{m, time.Now().Unix()}
-	return err
+	sort.Slice(m.Data, func(i, j int) bool { return m.Data[i].Subject.ID < m.Data[j].Subject.ID })
+	return m, nil
 }
 
-type bgmCache struct {
-	NewBangumi NewBangumi
-	TTL        int64
-}
-
-var bgm = bgmCache{}
-
-// Bangumi todo https://freefrontend.com/css-cards/
 func Bangumi(c *echo.Context) error {
-	cfg, err := store.ReadConfig()
-	if err != nil {
-		return err
-	}
-	newAPI := "https://api.bgm.tv/v0/users/" + cfg.BangumiUserID + "/collections?subject_type=2&limit=100&offset=0"
-	//每七天更新一下
-	if time.Now().Unix()-bgm.TTL > 604800 {
-		if err := curlBGM(newAPI); err != nil {
+	if bgm.shouldRefresh() {
+		cfg, err := store.ReadConfig()
+		if err != nil {
 			return err
 		}
+		url := "https://api.bgm.tv/v0/users/" + cfg.BangumiUserID + "/collections?subject_type=2&limit=100&offset=0"
+		data, err := fetchBangumi(url)
+		bgm.storeResult(data, err == nil)
 	}
-	return c.Render(200, "page-bangumi.template", bgm.NewBangumi)
+	return c.Render(200, "page-bangumi.template", bgm.snapshot())
 }

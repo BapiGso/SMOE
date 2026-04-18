@@ -34,13 +34,11 @@ func LoginPost(c *echo.Context) error {
 	if err != nil {
 		return echo.ErrUnauthorized
 	}
-	//计算提交表单的密码与盐 scrypt和数据库中密码是否一致
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Pwd)); err == nil {
 		if err := mymiddleware.LoginAdmin(c, user.Name); err != nil {
 			return err
 		}
 		return c.Redirect(302, "/admin")
 	}
-	//TODO 发邮件提醒和防爆破
 	return echo.ErrUnauthorized
 }

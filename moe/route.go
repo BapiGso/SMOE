@@ -3,8 +3,8 @@ package moe
 import (
 	"SMOE/moe/handler"
 	"SMOE/moe/mymiddleware"
+	"html/template"
 	"net/http"
-	"text/template"
 
 	"github.com/labstack/echo/v5/middleware"
 )
@@ -16,10 +16,9 @@ func (s *Smoe) LoadMiddlewareRoutes() {
 			template.ParseFS(
 				s.themeFS,
 				"blog/*.template",
-				"blog/css/*.css",
 				"admin/*.template",
 			),
-		).Funcs(template.FuncMap{}),
+		),
 	}
 	// WebDAV 文件挂载：/webdav/* → usr/，Basic Auth
 	s.e.Pre(mymiddleware.WebDAV())
@@ -30,25 +29,9 @@ func (s *Smoe) LoadMiddlewareRoutes() {
 		HSTSPreloadEnabled:    true,
 		HSTSExcludeSubdomains: true,
 	}))
-	//cors防盗链
-	//s.e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-	//	AllowOrigins: []string{"http://localhost:8080"}, // 允许的源地址
-	//	AllowMethods: []string{http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete},
-	//}))
-	// 中间件：禁用跨站请求伪造（CSRF）
-	//s.e.Use(middleware.CSRFWithConfig(middleware.CSRFConfig{
-	//	TokenLookup: "header:X-CSRF-Token", // 从请求头中获取CSRF令牌
-	//}))
 
-	//s.e.Logger.SetLevel(log.INFO)
 	s.e.Use(mymiddleware.Slog())
-	//s.e.Use(souinecho.NewMiddleware(souinemiddleware.BaseConfiguration{}).Process)
-
-	//s.e.Use(middleware.Logger())
 	s.e.Use(middleware.Recover())
-
-	//http重定向https
-	//s.e.Pre(middleware.HTTPSRedirect())
 
 	s.e.StaticFS("/assets", s.themeFS)
 
@@ -57,7 +40,6 @@ func (s *Smoe) LoadMiddlewareRoutes() {
 	back := s.e.Group("/admin")
 
 	// 前台页面路由
-	//front.Use(mymiddleware.InsightLog)
 	//301跳转去除尾部斜杠
 	front.Use(middleware.RemoveTrailingSlashWithConfig(middleware.RemoveTrailingSlashConfig{
 		RedirectCode: http.StatusMovedPermanently,
@@ -73,14 +55,13 @@ func (s *Smoe) LoadMiddlewareRoutes() {
 	front.GET("/bangumi", handler.Bangumi)                                                                                                                           // 显示番剧相关信息的页面路由
 	front.Static("/usr/uploads", "usr/uploads")                                                                                                                      // 用户上传的文件，最后注册
 
-	// 后台管理
 	// 后台管理的路由组
 	back.Use(mymiddleware.Session())
 	back.Use(middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(3))) //每秒限制3次请求
 	backSecure := back.Group("", mymiddleware.RequireAdminSession())
 	// 后台管理页面路由
-	back.GET("", handler.LoginGet)   // 后台管理登录页面路由
-	back.POST("", handler.LoginPost) // 后台管理登录处理路由
+	back.GET("", handler.LoginGet)                            // 后台管理登录页面路由
+	back.POST("", handler.LoginPost, mymiddleware.LoginRateLimit()) // 后台管理登录处理路由（带防爆破限流）
 	backSecure.Any("/write/:cid", handler.Write)
 	backSecure.Any("/manage/:type", handler.Manage)
 	backSecure.GET("/insight", handler.Insight)

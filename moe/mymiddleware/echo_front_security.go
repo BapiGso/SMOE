@@ -70,3 +70,21 @@ func LikeRateLimit() echo.MiddlewareFunc {
 		},
 	})
 }
+
+// LoginRateLimit 管理员登录限流：单个 IP 每 10 分钟最多 5 次尝试。
+// 失败返回 429，避免爆破。
+func LoginRateLimit() echo.MiddlewareFunc {
+	return middleware.RateLimiterWithConfig(middleware.RateLimiterConfig{
+		Store: middleware.NewRateLimiterMemoryStoreWithConfig(middleware.RateLimiterMemoryStoreConfig{
+			Rate:      5.0 / float64((10 * time.Minute).Seconds()),
+			Burst:     5,
+			ExpiresIn: 30 * time.Minute,
+		}),
+		IdentifierExtractor: func(c *echo.Context) (string, error) {
+			return "login:" + c.RealIP(), nil
+		},
+		DenyHandler: func(c *echo.Context, _ string, _ error) error {
+			return echo.NewHTTPError(http.StatusTooManyRequests, "登录尝试过多，请稍后再试")
+		},
+	})
+}

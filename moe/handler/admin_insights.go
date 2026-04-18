@@ -1,8 +1,6 @@
 package handler
 
 import (
-	"encoding/json"
-
 	"github.com/labstack/echo/v5"
 )
 
@@ -16,14 +14,6 @@ type smoeInsight struct {
 	Countries map[string]int `json:"Countries"`
 }
 
-func (s *smoeInsight) Json() string {
-	marshal, err := json.Marshal(s)
-	if err != nil {
-		return err.Error()
-	}
-	return string(marshal)
-}
-
 func Insight(c *echo.Context) error {
 	// Insights disabled — return empty data
 	insight := &smoeInsight{
@@ -35,5 +25,5 @@ func Insight(c *echo.Context) error {
 		Devices:   map[string]int{},
 		Countries: map[string]int{},
 	}
-	return c.Render(200, "insights.template", insight.Json())
+	return c.Render(200, "insights.template", insight)
 }
