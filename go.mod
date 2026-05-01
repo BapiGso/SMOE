@@ -12,7 +12,7 @@ require (
 	github.com/labstack/echo-contrib/v5 v5.0.1
 	github.com/labstack/echo/v5 v5.1.0
 	github.com/quasoft/memstore v0.0.0-20191010062613-2bce066d2b0b
-	github.com/resend/resend-go/v3 v3.5.0
+	github.com/resend/resend-go/v3 v3.6.0
 	github.com/yuin/goldmark v1.8.2
 	github.com/yuin/goldmark-highlighting v0.0.0-20220208100518-594be1970594
 	go.abhg.dev/goldmark/frontmatter v0.3.0
@@ -25,7 +25,7 @@ require (
 require (
 	github.com/BurntSushi/toml v1.6.0 // indirect
 	github.com/alecthomas/chroma v0.10.0 // indirect
-	github.com/dlclark/regexp2 v1.11.5 // indirect
+	github.com/dlclark/regexp2 v1.12.0 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.13 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
