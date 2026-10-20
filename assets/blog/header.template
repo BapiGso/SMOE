@@ -8,11 +8,36 @@
     <meta content="notranslate" name="google"/>
     <meta content="遁隐缥缈霞云, 就此声销迹灭" name="description"/>
     <meta content="smoe.cc,晓梦,曉夢" name="keywords"/>
-    <meta name="theme-color" content="#9370DB">
+    <meta name="theme-color" content="#f8f7f4">
+    <script>try{sessionStorage.getItem('smoe-seen')?document.documentElement.dataset.seen='':sessionStorage.setItem('smoe-seen','1')}catch(e){}</script>
     <link rel="stylesheet" href="/assets/blog/css/backup.css">
     <link rel="stylesheet" href="/assets/blog/css/Diaspora.css">
     <link rel="stylesheet" href="/assets/blog/css/github-markdown.css">
     <link rel="icon" type="image/png" href="/assets/root/favicon.ico">
-    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="/assets/blog/js/vt.js"></script>
+    <script>
+        (() => {
+            const idle = window.requestIdleCallback || ((fn) => setTimeout(fn, 600));
+            const hasMath = () => {
+                const root = document.querySelector('.markdown-body, article, main');
+                if (!root) return false;
+                if (root.querySelector('math, script[type^="math/"], .math, .katex')) return true;
+                return /(^|[^\\])(\$\$?[^$\n]+\$\$?|\\\(|\\\[|\\begin\{)/.test(root.textContent || '');
+            };
+            const load = () => {
+                if (!hasMath() || document.getElementById('MathJax-script')) return;
+                window.MathJax = {
+                    tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] },
+                    options: { skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'] },
+                };
+                const script = document.createElement('script');
+                script.id = 'MathJax-script';
+                script.async = true;
+                script.src = 'https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+                document.head.appendChild(script);
+            };
+            addEventListener('load', () => idle(load), { once: true });
+        })();
+    </script>
     <link rel="alternate" type="application/rss+xml" title="晓梦 &raquo; RSS 2.0" href="/feed" />
 </head>

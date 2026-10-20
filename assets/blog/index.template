@@ -1,22 +1,17 @@
 {{define "post-card"}}
 <li>
-    <a @click.prevent="ajaxPost($el.href)" href="/archives/{{.Cid}}" title="{{.Title}}">
-        <img src="{{if .CoverList}}/usr/uploads/background{{.CoverList}}{{else}}{{.AutoCover}}{{end}}" {{if and .CoverList .AutoCover}}onerror="this.onerror=null;this.src='{{.AutoCover}}'"{{end}} alt="illustration" loading="lazy">
+    <a class="card-cover" href="/archives/{{.Cid}}" title="{{.Title}}" data-vt="{{.Cid}}">
+        <img src="{{if .AutoCover}}{{.AutoCover}}{{else if .CoverList}}/usr/uploads/background{{.CoverList}}{{end}}" alt="{{.Title}}" decoding="async">
     </a>
-    <div>
-        <p>{{ .UnixToStr }}</p>
-        <h3><a @click.prevent="ajaxPost($el.href)" href="/archives/{{ .Cid }}">{{ .Title }}</a></h3>
-        <div>
-            <p>{{ .MDSub }}...</p>
-        </div>
-        <div>
-            <i class="icon-letter"></i>
-            <p>{{ .MDCount }}</p>
-            <i class="icon-view"></i>
-            <p>{{ .Views }}</p>
-            <i class="icon-like"></i>
-            <p>{{ .Likes }}</p>
-        </div>
+    <div class="card-body">
+        <time>{{ .UnixToStr }}</time>
+        <h3><a href="/archives/{{ .Cid }}">{{ .Title }}</a></h3>
+        <p>{{ .MDSub }}……</p>
+        <footer>
+            <span><i class="icon-letter"></i>{{ .MDCount }} 字</span>
+            <span><i class="icon-view"></i>{{ .Views }}</span>
+            <span><i class="icon-like"></i>{{ .Likes }}</span>
+        </footer>
     </div>
 </li>
 {{end}}
@@ -38,7 +33,7 @@
                 <ul>
                     {{ range .Pages }}
                     <li id="{{.Slug}}">
-                        <a @click.prevent="ajaxPost($el.href)" href="/{{.Slug}}" class="pagelist">{{.Title}}</a>
+                        <a href="/{{.Slug}}" class="pagelist">{{.Title}}</a>
                     </li>
                     {{ end }}
                 </ul>
@@ -47,29 +42,30 @@
                 </p>
             </div>
         </details>
-        <figure x-init="parallax($el)">
+
+        <figure class="hero-cover"{{if .Posts}} data-vt="{{(index .Posts 0).Cid}}"{{end}}>
             <img id="cover" src="/usr/uploads/71767119_p0.avif" alt="illustration">
         </figure>
-        <svg preserveAspectRatio="xMaxYMax slice" aria-hidden="true">
-            <polygon points="2000,1600 0,1000 0,0 230,0 " :fill="['#882345B3','#8A6FA6B3','#532DA6B3','#6649A6B3'][Math.floor(Math.random()*4)]"></polygon>
-        </svg>
+
         {{if .Posts}}
             {{with index .Posts 0}}
-            <div>
-                <p>{{ .UnixToStr }}</p>
-                <h2><a @click.prevent="ajaxPost($el.href)" href="/archives/{{ .Cid }}">{{ .Title }}</a></h2>
-                <div><p>{{ .MDSub }}...</p></div>
-            </div>
+            <section class="hero">
+                <div class="hero-block">
+                    <h2 class="hero-title"><a href="/archives/{{ .Cid }}">{{ .Title }}</a></h2>
+                    <p class="hero-meta">晓梦通信 · 卷首<time>{{ .UnixToStr }}</time></p>
+                </div>
+            </section>
             {{end}}
         {{end}}
+
         {{if gt (len .Posts) 1}}
-            <ol>
+            <ol class="issue-list">
                 {{range (slice .Posts 1)}}
                     {{template "post-card" .}}
                 {{end}}
             </ol>
         {{end}}
-        <button x-show="hasMore" x-init="hasMore={{.HasMore}}" @click.prevent="ajaxNextPage($event)">加载更多</button>
+        <button class="load-more" x-show="hasMore" x-init="hasMore={{.HasMore}}" @click.prevent="ajaxNextPage($event)">继续翻阅</button>
     </main>
     {{template "footer.template"}}
 </body>

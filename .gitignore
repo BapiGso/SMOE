@@ -5,7 +5,8 @@ usr
 .idea
 CLAUDE.md
 
-# 本地工具目录
+
 .claude
 .codex-temp
 .gocache
+.tmp

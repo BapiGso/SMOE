@@ -31,6 +31,11 @@
         </button>
     </header>
     {{with index .Contents 0}}
+        {{if or .AutoCover .CoverList}}
+        <figure class="post-hero">
+            <img src="{{if .AutoCover}}{{.AutoCover}}{{else}}/usr/uploads/background{{.CoverList}}{{end}}" alt="{{.Title}}" fetchpriority="high">
+        </figure>
+        {{end}}
         <h1>{{.Title}}</h1>
         <span>{{.UnixToStr}} · 阅读 {{.Views}} · 字数 {{.MDCount}} · 喜欢 <span data-like-count>{{.Likes}}</span></span>
         <section class="markdown-body" @click="lightbox($event)">

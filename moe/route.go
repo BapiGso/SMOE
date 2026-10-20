@@ -49,10 +49,10 @@ func (s *Smoe) LoadMiddlewareRoutes() {
 	front.GET("/archives/:cid", handler.Post)                                                                                                                        // 根据分类ID显示该分类下的文章列表
 	front.POST("/archives/:cid/comment", handler.SubmitArticleComment, mymiddleware.SameOriginOnly(), mymiddleware.CommentRateLimit(), mymiddleware.CommentNotify()) // 管理评论提交
 	front.POST("/archives/:cid/like", handler.LikePost, mymiddleware.SameOriginOnly(), mymiddleware.LikeRateLimit())                                                 // 文章点赞
-	front.GET("/:page", handler.Page)                                                                                                                                // 独立页面，注册在特殊独立页面前
 	front.GET("/feed", handler.RSS)                                                                                                                                  // RSS 订阅
 	front.GET("/archives", handler.Archives)                                                                                                                         // 归档页面路由，显示所有文章的归档分类
 	front.GET("/bangumi", handler.Bangumi)                                                                                                                           // 显示番剧相关信息的页面路由
+	front.GET("/:page", handler.Page)                                                                                                                                // 独立页面兜底，固定路径注册在它之前
 	front.Static("/usr/uploads", "usr/uploads")                                                                                                                      // 用户上传的文件，最后注册
 
 	// 后台管理的路由组
@@ -60,7 +60,7 @@ func (s *Smoe) LoadMiddlewareRoutes() {
 	back.Use(middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(3))) //每秒限制3次请求
 	backSecure := back.Group("", mymiddleware.RequireAdminSession())
 	// 后台管理页面路由
-	back.GET("", handler.LoginGet)                            // 后台管理登录页面路由
+	back.GET("", handler.LoginGet)                                  // 后台管理登录页面路由
 	back.POST("", handler.LoginPost, mymiddleware.LoginRateLimit()) // 后台管理登录处理路由（带防爆破限流）
 	backSecure.Any("/write/:cid", handler.Write)
 	backSecure.Any("/manage/:type", handler.Manage)

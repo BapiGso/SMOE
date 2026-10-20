@@ -3,9 +3,13 @@ package handler
 import (
 	"SMOE/moe/store"
 	"encoding/json"
+	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
+	"net/url"
 	"sort"
+	"strings"
 	"sync"
 	"time"
 
@@ -60,6 +64,7 @@ type bangumiCache struct {
 	data        NewBangumi
 	fetchedAt   time.Time
 	lastAttempt time.Time
+	lastErr     error
 }
 
 const (
@@ -82,31 +87,47 @@ func (b *bangumiCache) shouldRefresh() bool {
 	return true
 }
 
-func (b *bangumiCache) snapshot() NewBangumi {
+func (b *bangumiCache) snapshot() (NewBangumi, bool) {
 	b.mu.RLock()
 	defer b.mu.RUnlock()
-	return b.data
+	return b.data, !b.fetchedAt.IsZero()
 }
 
-func (b *bangumiCache) storeResult(data NewBangumi, ok bool) {
+func (b *bangumiCache) lastError() error {
+	b.mu.RLock()
+	defer b.mu.RUnlock()
+	return b.lastErr
+}
+
+func (b *bangumiCache) storeResult(data NewBangumi, err error) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 	now := time.Now()
 	b.lastAttempt = now
-	if ok {
+	if err == nil {
 		b.data = data
 		b.fetchedAt = now
+		b.lastErr = nil
+	} else {
+		b.lastErr = echo.NewHTTPError(http.StatusBadGateway, "fetch bangumi collections failed").Wrap(err)
 	}
 }
 
-func fetchBangumi(url string) (NewBangumi, error) {
+func fetchBangumi(url string, appID string, token string) (NewBangumi, error) {
 	var zero NewBangumi
-	client := &http.Client{Timeout: 5 * time.Second}
+	client := &http.Client{Timeout: 10 * time.Second}
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return zero, err
 	}
-	req.Header.Set("User-Agent", "trim21/bangumi-episode-ics (https://github.com/Trim21/bangumi-episode-calendar)")
+	userAgent := "SMOE"
+	if appID = strings.TrimSpace(appID); appID != "" {
+		userAgent += "/" + appID
+	}
+	req.Header.Set("User-Agent", userAgent)
+	if token = strings.TrimSpace(token); token != "" {
+		req.Header.Set("Authorization", "Bearer "+token)
+	}
 
 	resp, err := client.Do(req)
 	if err != nil {
@@ -114,7 +135,12 @@ func fetchBangumi(url string) (NewBangumi, error) {
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode >= 400 {
-		return zero, echo.NewHTTPError(resp.StatusCode, "bangumi upstream error")
+		body, _ := io.ReadAll(io.LimitReader(resp.Body, 512))
+		msg := fmt.Sprintf("bangumi upstream error: status=%d", resp.StatusCode)
+		if len(body) > 0 {
+			msg += ", body=" + strings.TrimSpace(string(body))
+		}
+		return zero, echo.NewHTTPError(resp.StatusCode, msg)
 	}
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
@@ -134,9 +160,26 @@ func Bangumi(c *echo.Context) error {
 		if err != nil {
 			return err
 		}
-		url := "https://api.bgm.tv/v0/users/" + cfg.BangumiUserID + "/collections?subject_type=2&limit=100&offset=0"
-		data, err := fetchBangumi(url)
-		bgm.storeResult(data, err == nil)
+		userID := strings.TrimSpace(cfg.BangumiUserID)
+		if userID == "" {
+			return echo.NewHTTPError(http.StatusInternalServerError, "bangumi user id is empty")
+		}
+		endpoint := "https://api.bgm.tv/v0/users/" + url.PathEscape(userID) + "/collections?subject_type=2&limit=100&offset=0"
+		data, err := fetchBangumi(endpoint, cfg.BangumiAppID, cfg.BgmToken)
+		bgm.storeResult(data, err)
+		if err != nil {
+			slog.Error("fetch bangumi collections failed", "userID", userID, "err", err)
+			if _, ok := bgm.snapshot(); !ok {
+				return echo.NewHTTPError(http.StatusBadGateway, "fetch bangumi collections failed").Wrap(err)
+			}
+		}
 	}
-	return c.Render(200, "page-bangumi.template", bgm.snapshot())
+	data, ok := bgm.snapshot()
+	if !ok {
+		if err := bgm.lastError(); err != nil {
+			return err
+		}
+		return echo.NewHTTPError(http.StatusServiceUnavailable, "bangumi data is unavailable")
+	}
+	return c.Render(200, "page-bangumi.template", data)
 }

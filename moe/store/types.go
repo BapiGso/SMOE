@@ -71,6 +71,7 @@ type Config struct {
 	Mail          string `yaml:"mail"`
 	BangumiUserID string `yaml:"bangumiUserID"`
 	BangumiAppID  string `yaml:"bangumiAppID"`
+	BgmToken      string `yaml:"bgmToken"`
 	Port          string `yaml:"port"` // HTTP 端口，默认 "95"
 	ResendAPI     string `yaml:"resendAPI"`
 	MailTo        string `yaml:"mailTo"`

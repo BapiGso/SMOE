@@ -1,3 +1,4 @@
 <script src="/assets/blog/js/plugin.js"></script>
+<script src="/assets/blog/js/lenis.min.js"></script>
 <script src="/assets/blog/js/Smoe.js"></script>
 <script src="/assets/blog/js/alpine.min.js" defer></script>

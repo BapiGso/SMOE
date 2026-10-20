@@ -191,6 +191,11 @@
     <header class="page-header">
         <button data-action="back" @click="goBack()" aria-label="返回"></button>
     </header>
+    {{if not .Data}}
+    <section aria-label="提示">
+        <p style="margin:40vh auto;text-align:center;color:var(--c-muted);letter-spacing:.2em">暂时没有取到番剧数据，稍后再来看看吧</p>
+    </section>
+    {{else}}
     <section aria-label="看过">
         <h2>看过</h2>
         <ul>
@@ -241,6 +246,7 @@
             {{end}}{{end}}
         </ul>
     </section>
+    {{end}}
 </article>
 {{template "footer.template"}}
 </body>
