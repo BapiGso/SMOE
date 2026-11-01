@@ -1,6 +1,6 @@
 module SMOE
 
-go 1.26.0
+go 1.27
 
 require (
 	github.com/adrg/frontmatter v0.2.0
@@ -10,15 +10,15 @@ require (
 	github.com/gorilla/feeds v1.2.0
 	github.com/gorilla/sessions v1.4.0
 	github.com/labstack/echo-contrib/v5 v5.0.1
-	github.com/labstack/echo/v5 v5.4.0
+	github.com/labstack/echo/v5 v5.4.4
 	github.com/quasoft/memstore v0.0.0-20191010062613-2bce066d2b0b
 	github.com/resend/resend-go/v3 v3.17.0
-	github.com/yuin/goldmark v1.8.6
+	github.com/yuin/goldmark v1.8.7
 	github.com/yuin/goldmark-highlighting v0.0.0-20220208100518-594be1970594
 	go.abhg.dev/goldmark/frontmatter v0.3.0
 	go.abhg.dev/goldmark/mermaid v0.6.0
 	golang.org/x/crypto v0.58.0
-	golang.org/x/net v0.61.0
+	golang.org/x/net v0.62.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
