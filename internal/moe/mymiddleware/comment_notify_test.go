@@ -9,8 +9,8 @@ import (
 	"testing"
 	"time"
 
-	"SMOE/moe/blogdata"
-	"SMOE/moe/config"
+	"github.com/BapiGso/SMOE/internal/moe/blogdata"
+	"github.com/BapiGso/SMOE/internal/moe/config"
 
 	"github.com/labstack/echo/v5"
 )

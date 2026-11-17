@@ -1,8 +1,6 @@
 package handler
 
 import (
-	"SMOE/moe/blogdata"
-	"SMOE/moe/engine"
 	"crypto/hmac"
 	"crypto/rand"
 	"crypto/sha256"
@@ -15,6 +13,9 @@ import (
 	"net/url"
 	"strconv"
 	"time"
+
+	"github.com/BapiGso/SMOE/internal/moe/blogdata"
+	"github.com/BapiGso/SMOE/internal/moe/engine"
 
 	"github.com/labstack/echo/v5"
 )

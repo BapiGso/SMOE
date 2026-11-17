@@ -1,9 +1,10 @@
 package mymiddleware
 
 import (
-	"SMOE/moe/config"
 	"net/http"
 	"strings"
+
+	"github.com/BapiGso/SMOE/internal/moe/config"
 
 	"github.com/labstack/echo/v5"
 	"golang.org/x/crypto/bcrypt"

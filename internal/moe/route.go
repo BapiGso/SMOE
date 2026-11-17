@@ -1,9 +1,10 @@
 package moe
 
 import (
-	"SMOE/moe/handler"
-	"SMOE/moe/mymiddleware"
 	"net/http"
+
+	"github.com/BapiGso/SMOE/internal/moe/handler"
+	"github.com/BapiGso/SMOE/internal/moe/mymiddleware"
 
 	"github.com/labstack/echo/v5/middleware"
 )
@@ -30,9 +31,9 @@ func (s *Smoe) LoadMiddlewareRoutes() {
 	front.Use(middleware.RemoveTrailingSlashWithConfig(middleware.RemoveTrailingSlashConfig{
 		RedirectCode: http.StatusMovedPermanently,
 	}))
-	front.GET("/*", handler.Front(s.site, s.data))                                                                                                                                         // 首页、分页、文章、独立页面、时间线、追番、RSS、css/js 都来自 Hugo 构建产物
+	front.GET("/*", handler.Front(s.site, s.data))                                                                                                                                          // 首页、分页、文章、独立页面、时间线、追番、RSS、css/js 都来自 Hugo 构建产物
 	front.POST("/archives/:cid/comment", handler.SubmitArticleComment(s.site, s.data, s.mod), mymiddleware.SameOriginOnly(), mymiddleware.CommentRateLimit(), mymiddleware.CommentNotify()) // 评论提交，待审核
-	front.POST("/archives/:cid/like", handler.LikePost(s.site, s.data), mymiddleware.SameOriginOnly(), mymiddleware.LikeRateLimit())                                                       // 文章点赞
-	front.Match([]string{http.MethodGet, http.MethodPost}, "/comment/moderate", s.mod.Handler(s.site, s.data))                                                                             // 邮件里的审核链接，签名即凭证
-	front.Static("/usr/uploads", "usr/uploads")                                                                                                                                            // 用户上传的文件
+	front.POST("/archives/:cid/like", handler.LikePost(s.site, s.data), mymiddleware.SameOriginOnly(), mymiddleware.LikeRateLimit())                                                        // 文章点赞
+	front.Match([]string{http.MethodGet, http.MethodPost}, "/comment/moderate", s.mod.Handler(s.site, s.data))                                                                              // 邮件里的审核链接，签名即凭证
+	front.Static("/usr/uploads", "usr/uploads")                                                                                                                                             // 用户上传的文件
 }

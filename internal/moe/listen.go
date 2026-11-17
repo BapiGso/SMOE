@@ -1,7 +1,6 @@
 package moe
 
 import (
-	"SMOE/moe/blogdata"
 	"context"
 	"errors"
 	"fmt"
@@ -13,6 +12,8 @@ import (
 	"sync"
 	"syscall"
 	"time"
+
+	"github.com/BapiGso/SMOE/internal/moe/blogdata"
 )
 
 func (s *Smoe) Listen() {

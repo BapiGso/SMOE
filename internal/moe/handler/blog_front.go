@@ -1,8 +1,6 @@
 package handler
 
 import (
-	"SMOE/moe/blogdata"
-	"SMOE/moe/engine"
 	"bytes"
 	"mime"
 	"net/http"
@@ -10,6 +8,9 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+
+	"github.com/BapiGso/SMOE/internal/moe/blogdata"
+	"github.com/BapiGso/SMOE/internal/moe/engine"
 
 	"github.com/labstack/echo/v5"
 )

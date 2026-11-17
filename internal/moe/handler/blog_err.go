@@ -1,9 +1,10 @@
 package handler
 
 import (
-	"SMOE/moe/engine"
 	"errors"
 	"net/http"
+
+	"github.com/BapiGso/SMOE/internal/moe/engine"
 
 	"github.com/labstack/echo/v5"
 )

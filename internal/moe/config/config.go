@@ -18,6 +18,8 @@ type Config struct {
 	ResendAPI     string `yaml:"resendAPI"`
 	MailTo        string `yaml:"mailTo"`
 	MailCC        string `yaml:"mailCC"`
+	// 反向代理或 CDN 的 IP / CIDR。设置后从 X-Forwarded-For 取访客 IP，不设置时用连接的对端地址
+	TrustedProxies []string `yaml:"trustedProxies"`
 }
 
 // Read 读取配置文件。每次调用都重新读，通过 WebDAV 改了密码不用重启。

@@ -11,7 +11,7 @@ import (
 	"github.com/labstack/echo/v5"
 	"golang.org/x/crypto/bcrypt"
 
-	"SMOE/moe/mymiddleware"
+	"github.com/BapiGso/SMOE/internal/moe/mymiddleware"
 )
 
 // setupWebDAVEnv creates a temp directory with usr/config.yaml and

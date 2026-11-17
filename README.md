@@ -14,6 +14,19 @@
 
 [SMOE](https://smoe.cc)
 
+## Run
+
+站点目录 `usr/` 里要有 `config.yaml`（字段见 [config.go](internal/moe/config/config.go)），文章放在 `usr/content`。用 Docker 一行启动：
+
+```sh
+docker run -d --name smoe --restart unless-stopped -p 95:95 \
+  -v /path/to/usr:/app/usr -v smoe-go:/go -w /app \
+  -e GOCACHE=/go/.cache -e GOTOOLCHAIN=auto \
+  golang:alpine sh -c 'go install github.com/BapiGso/SMOE@latest; exec SMOE'
+```
+
+每次启动都会更新到最新版本，更新失败就用上次装好的。首次启动要编译 Hugo，需要几分钟。
+
 ## License
 
 This software is distributed under the GPL License

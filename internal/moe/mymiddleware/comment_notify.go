@@ -1,12 +1,13 @@
 package mymiddleware
 
 import (
-	"SMOE/moe/blogdata"
-	"SMOE/moe/config"
 	"fmt"
 	"html"
 	"log/slog"
 	"strings"
+
+	"github.com/BapiGso/SMOE/internal/moe/blogdata"
+	"github.com/BapiGso/SMOE/internal/moe/config"
 
 	"github.com/labstack/echo/v5"
 	"github.com/resend/resend-go/v3"

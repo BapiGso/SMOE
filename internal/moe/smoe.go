@@ -1,17 +1,17 @@
 package moe
 
 import (
-	"SMOE/assets"
-	"SMOE/moe/blogdata"
-	"SMOE/moe/config"
-	"SMOE/moe/engine"
-	"SMOE/moe/handler"
-	"SMOE/moe/migrate"
-	"SMOE/moe/mymiddleware"
 	"io/fs"
 	"log"
 	"log/slog"
 	"path/filepath"
+
+	"github.com/BapiGso/SMOE/internal/moe/blogdata"
+	"github.com/BapiGso/SMOE/internal/moe/config"
+	"github.com/BapiGso/SMOE/internal/moe/engine"
+	"github.com/BapiGso/SMOE/internal/moe/handler"
+	"github.com/BapiGso/SMOE/internal/moe/migrate"
+	"github.com/BapiGso/SMOE/internal/moe/mymiddleware"
 
 	"github.com/labstack/echo/v5"
 )
@@ -38,12 +38,16 @@ ____________________________________O/_______
 `
 )
 
-func New() *Smoe {
+// New 读取配置、迁移旧数据并完成首次构建。theme 是 site.toml 和 smoe/ 主题目录所在的文件系统。
+func New(theme fs.FS) *Smoe {
 	cfg, err := config.Read()
 	if err != nil {
 		log.Fatal("读取 usr/config.yaml 失败: ", err)
 	}
 	s := &Smoe{cfg: cfg, e: echo.New()}
+	if s.e.IPExtractor, err = mymiddleware.IPExtractor(cfg.TrustedProxies); err != nil {
+		log.Fatal("usr/config.yaml 的 trustedProxies 有误: ", err)
+	}
 	mymiddleware.ConfigureCommentNotifier(cfg)
 
 	// 旧版 usr/posts、usr/pages → usr/content、usr/data，只在两者都不存在时做一次
@@ -53,10 +57,6 @@ func New() *Smoe {
 		slog.Info("已迁移到 usr/content 和 usr/data，旧的 usr/posts、usr/pages 保留未动")
 	}
 
-	theme, err := fs.Sub(assets.Assets, "theme")
-	if err != nil {
-		log.Fatal(err)
-	}
 	if s.site, err = engine.New("usr", theme); err != nil {
 		log.Fatal("初始化 Hugo 失败: ", err)
 	}

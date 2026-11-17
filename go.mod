@@ -1,4 +1,4 @@
-module SMOE
+module github.com/BapiGso/SMOE
 
 go 1.27.0
 

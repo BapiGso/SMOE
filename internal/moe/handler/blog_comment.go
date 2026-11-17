@@ -1,11 +1,12 @@
 package handler
 
 import (
-	"SMOE/moe/blogdata"
-	"SMOE/moe/engine"
-	"SMOE/moe/mymiddleware"
 	"errors"
 	"net/http"
+
+	"github.com/BapiGso/SMOE/internal/moe/blogdata"
+	"github.com/BapiGso/SMOE/internal/moe/engine"
+	"github.com/BapiGso/SMOE/internal/moe/mymiddleware"
 
 	"github.com/labstack/echo/v5"
 )

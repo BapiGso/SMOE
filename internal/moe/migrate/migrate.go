@@ -4,7 +4,6 @@
 package migrate
 
 import (
-	"SMOE/moe/blogdata"
 	"bytes"
 	"encoding/json"
 	"errors"
@@ -14,6 +13,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/BapiGso/SMOE/internal/moe/blogdata"
 
 	"gopkg.in/yaml.v3"
 )

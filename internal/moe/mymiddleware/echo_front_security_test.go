@@ -5,7 +5,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"SMOE/moe/mymiddleware"
+	"github.com/BapiGso/SMOE/internal/moe/mymiddleware"
 
 	"github.com/labstack/echo/v5"
 )
