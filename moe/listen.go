@@ -1,6 +1,7 @@
 package moe
 
 import (
+	"SMOE/moe/blogdata"
 	"context"
 	"errors"
 	"fmt"
@@ -8,6 +9,8 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"path/filepath"
+	"sync"
 	"syscall"
 	"time"
 )
@@ -30,6 +33,22 @@ func (s *Smoe) Listen() {
 
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
+
+	// 后台任务：监听 usr/ 改动重建站点、定期写入浏览量和点赞、定期刷新番剧数据
+	var jobs sync.WaitGroup
+	jobs.Go(func() { s.site.Run(ctx) })
+	jobs.Go(func() { s.data.Run(ctx, 10*time.Minute) })
+	jobs.Go(func() { blogdata.RunBangumi(ctx, filepath.Join("usr", "data"), s.cfg.BangumiUserID, s.site.Trigger) })
+	defer func() {
+		jobs.Wait()
+		// 关停期间还在处理的请求也可能记了数
+		if err := s.data.Flush(); err != nil {
+			slog.Error("blogdata: flush on exit failed", "err", err)
+		}
+		if err := s.site.Close(); err != nil {
+			slog.Warn("engine close", "err", err)
+		}
+	}()
 
 	go func() {
 		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {

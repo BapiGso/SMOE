@@ -1,10 +1,10 @@
 # 自定义
 
-## goldmark
- - Markdown -> HTML的解析器，hugo同款
+## webdav
+ - /webdav/* 挂载 usr/，Basic Auth（usr/config.yaml 的 name 和 bcrypt 密码）
 
-## render
- -  html模板渲染用的render渲染器
+## comment notify
+ - 新评论邮件提醒（Resend），邮件里带签名的审核链接
 
 ## validator
  - 校验器，用于校验前端发过来的req body

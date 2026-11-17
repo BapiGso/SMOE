@@ -1,7 +1,7 @@
 package mymiddleware
 
 import (
-	"SMOE/moe/store"
+	"SMOE/moe/config"
 	"net/http"
 	"strings"
 
@@ -38,9 +38,9 @@ func WebDAV() echo.MiddlewareFunc {
 }
 
 func davAuth(username, password string) bool {
-	user, err := store.GetUser(username)
-	if err != nil {
+	cfg, err := config.Read()
+	if err != nil || cfg.Name == "" || cfg.Name != username {
 		return false
 	}
-	return bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)) == nil
+	return bcrypt.CompareHashAndPassword([]byte(cfg.Password), []byte(password)) == nil
 }

@@ -1,0 +1,43 @@
+# SMOE 的 Hugo 基础配置，随二进制分发。
+# 要改标题、baseURL 等，在 usr/hugo.toml 里写同名键即可覆盖（后加载的文件优先）。
+baseURL = "https://smoe.cc/"
+title = "晓梦"
+locale = "zh-Hans"
+disableKinds = ["taxonomy", "term", "sitemap"]
+
+[params]
+description = "遁隐缥缈霞云, 就此声销迹灭"
+keywords = "smoe.cc,晓梦,曉夢"
+feedTitle = "晓梦的博客"
+# 首页大图，路径相对站点根
+cover = "/usr/uploads/71767119_p0.avif"
+
+[pagination]
+pagerSize = 5
+
+[outputs]
+home = ["html", "rss"]
+page = ["html", "markdown"]
+section = ["html"]
+
+# RSS 输出为 /feed.xml，老地址 /feed 由前台处理器映射过来
+[outputFormats.rss]
+baseName = "feed"
+
+# 以下对齐旧版 goldmark 配置：硬换行、允许原始 HTML、不做智能标点、LaTeX 交给 MathJax、github 高亮
+[markup.goldmark.renderer]
+hardWraps = true
+unsafe = true
+
+[markup.goldmark.extensions.typographer]
+disable = true
+
+[markup.goldmark.extensions.passthrough]
+enable = true
+
+[markup.goldmark.extensions.passthrough.delimiters]
+block = [['\[', '\]'], ['$$', '$$']]
+inline = [['\(', '\)'], ['$', '$']]
+
+[markup.highlight]
+style = "github"

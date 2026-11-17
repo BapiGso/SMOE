@@ -1,0 +1,19 @@
+{{- $s := .subject }}
+<li>
+    <a href="//bgm.tv/subject/{{ .subject_id }}" target="_blank" rel="noopener">
+        <figure>
+            {{- if $s.score }}<data>{{ printf "%.1f" (float $s.score) }}</data>{{ end }}
+            <img src="{{ with $s.images }}{{ .common }}{{ end }}" alt="{{ $s.name }}" loading="lazy">
+            <figcaption>
+                {{- if and $s.name_cn (ne $s.name_cn $s.name) }}<em>{{ $s.name }}</em>{{ end }}
+                <small>
+                    {{- if $s.score }}<span>{{ printf "%.1f" (float $s.score) }}</span>{{ end }}
+                    {{- if $s.eps }}<span>{{ $s.eps }}话</span>{{ end }}
+                    {{- if $s.date }}<span>{{ $s.date }}</span>{{ end }}
+                </small>
+                {{- if $s.short_summary }}<p>{{ $s.short_summary }}</p>{{ end }}
+            </figcaption>
+        </figure>
+        <strong>{{ or $s.name_cn $s.name }}</strong>
+    </a>
+</li>

@@ -1,0 +1,2 @@
+{{- /* LaTeX 原样交给 MathJax，统一成 \( \) 与 \[ \] 定界符（旧版 goldmark-latex 的输出）。 */ -}}
+{{- if eq .Type "block" }}\[{{ .Inner }}\]{{ else }}\({{ .Inner }}\){{ end -}}

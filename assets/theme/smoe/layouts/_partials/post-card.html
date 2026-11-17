@@ -1,0 +1,23 @@
+{{- $link := partial "url.html" .RelPermalink -}}
+{{- $auto := partial "autocover.html" . -}}
+{{- $st := partial "stats.html" . -}}
+<li>
+    <a @click.prevent="ajaxPost($el.href)" href="{{ $link }}" title="{{ .Title }}">
+        <img src="{{ with .Params.cover }}/usr/uploads/background{{ . }}{{ else }}{{ $auto }}{{ end }}" {{ if and .Params.cover $auto }}onerror="this.onerror=null;this.src='{{ $auto }}'"{{ end }} alt="illustration" loading="lazy">
+    </a>
+    <div>
+        <p>{{ partial "datestr.html" .Date }}</p>
+        <h3><a @click.prevent="ajaxPost($el.href)" href="{{ $link }}">{{ .Title }}</a></h3>
+        <div>
+            <p>{{ partial "excerpt.html" . }}...</p>
+        </div>
+        <div>
+            <i class="icon-letter"></i>
+            <p>{{ strings.RuneCount (strings.TrimLeft "\r\n" .RawContent) }}</p>
+            <i class="icon-view"></i>
+            <p>{{ $st.views | default 0 }}</p>
+            <i class="icon-like"></i>
+            <p>{{ $st.likes | default 0 }}</p>
+        </div>
+    </div>
+</li>

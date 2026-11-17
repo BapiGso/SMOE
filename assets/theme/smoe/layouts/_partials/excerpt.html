@@ -1,0 +1,2 @@
+{{- /* 纯文本前 70 个字作为摘要，对应旧版 MDSub。 */ -}}
+{{- return substr (strings.TrimSpace (replaceRE `\s+` " " .Plain)) 0 70 -}}

@@ -1,0 +1,4 @@
+{{- /* 浏览量和点赞数来自程序维护的 data/stats.json，键是文章地址的最后一段（旧文章即 cid）。 */ -}}
+{{- $s := dict -}}
+{{- with hugo.Data.stats }}{{ with index . (path.Base $.RelPermalink) }}{{ $s = . }}{{ end }}{{ end -}}
+{{- return $s -}}

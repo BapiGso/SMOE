@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="{{ site.Language.Locale }}">
+<head>
+    <title>{{ block "title" . }}{{ if not .IsHome }}{{ .Title }} | {{ end }}{{ site.Title }}{{ end }}</title>
+    <meta charset="UTF-8">
+    <meta content="yes" name="mobile-web-app-capable"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <meta content="notranslate" name="google"/>
+    <meta content="{{ site.Params.description }}" name="description"/>
+    <meta content="{{ site.Params.keywords }}" name="keywords"/>
+    <meta name="theme-color" content="#9370DB">
+    {{- range slice "css/backup.css" "css/Diaspora.css" "css/github-markdown.css" }}
+    <link rel="stylesheet" href="{{ (resources.Get . | fingerprint).RelPermalink }}">
+    {{- end }}
+    <link rel="icon" type="image/png" href="/favicon.ico">
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="alternate" type="application/rss+xml" title="{{ site.Title }} &raquo; RSS 2.0" href="/feed" />
+</head>
+<body x-data="smoe">
+{{ block "main" . }}{{ end }}
+<script src="{{ (resources.Get "js/plugin.js" | fingerprint).RelPermalink }}"></script>
+<script src="{{ (resources.Get "js/Smoe.js" | fingerprint).RelPermalink }}"></script>
+<script src="{{ (resources.Get "js/alpine.min.js" | fingerprint).RelPermalink }}" defer></script>
+</body>
+</html>

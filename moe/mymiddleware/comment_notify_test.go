@@ -9,7 +9,8 @@ import (
 	"testing"
 	"time"
 
-	"SMOE/moe/store"
+	"SMOE/moe/blogdata"
+	"SMOE/moe/config"
 
 	"github.com/labstack/echo/v5"
 )
@@ -18,23 +19,22 @@ func TestCommentNotify(t *testing.T) {
 	orig := sendCommentNotification
 	defer func() { sendCommentNotification = orig }()
 
-	notified := make(chan store.CommentNotification, 1)
-	sendCommentNotification = func(notification store.CommentNotification) error {
+	notified := make(chan CommentNotification, 1)
+	sendCommentNotification = func(notification CommentNotification) error {
 		notified <- notification
 		return nil
 	}
 
 	e := echo.New()
 	e.POST("/archives/:cid/comment", func(c *echo.Context) error {
-		SetCommentNotification(c, store.CommentNotification{
+		SetCommentNotification(c, CommentNotification{
 			PostTitle: "中间件测试文章",
-			PostCID:   42,
-			Comment: store.Comments{
-				Coid:   7,
-				Cid:    42,
-				Author: "tester",
-				Mail:   "tester@example.com",
-				Text:   "middleware should trigger notification",
+			PostURL:   "https://example.com/archives/42",
+			Comment: blogdata.Comment{
+				ID:      7,
+				Author:  "tester",
+				Mail:    "tester@example.com",
+				Content: "middleware should trigger notification",
 			},
 		})
 		return c.NoContent(http.StatusNoContent)
@@ -50,11 +50,11 @@ func TestCommentNotify(t *testing.T) {
 
 	select {
 	case notification := <-notified:
-		if notification.PostCID != 42 {
-			t.Fatalf("expected post cid 42, got %d", notification.PostCID)
+		if notification.PostURL != "https://example.com/archives/42" {
+			t.Fatalf("expected post url, got %q", notification.PostURL)
 		}
-		if notification.Comment.Coid != 7 {
-			t.Fatalf("expected comment coid 7, got %d", notification.Comment.Coid)
+		if notification.Comment.ID != 7 {
+			t.Fatalf("expected comment id 7, got %d", notification.Comment.ID)
 		}
 	case <-time.After(2 * time.Second):
 		t.Fatal("expected comment notification to be sent")
@@ -80,7 +80,7 @@ func TestSendCommentIntegration(t *testing.T) {
 	}
 	t.Cleanup(func() { _ = os.Chdir(origWD) })
 
-	cfg, err := store.ReadConfig()
+	cfg, err := config.Read()
 	if err != nil {
 		t.Fatalf("read config failed: %v", err)
 	}
@@ -93,14 +93,13 @@ func TestSendCommentIntegration(t *testing.T) {
 		t.Skip("comment notifier is disabled")
 	}
 
-	notification := store.CommentNotification{
+	notification := CommentNotification{
 		PostTitle: "SMOE 评论通知测试",
-		PostCID:   uint(time.Now().Unix()),
-		Comment: store.Comments{
-			Coid:   uint(time.Now().Unix()),
-			Author: "Codex Test",
-			Mail:   cfg.MailTo,
-			Text:   "这是一封通过 go test 发送的评论提醒测试邮件。",
+		Comment: blogdata.Comment{
+			ID:      uint(time.Now().Unix()),
+			Author:  "Codex Test",
+			Mail:    cfg.MailTo,
+			Content: "这是一封通过 go test 发送的评论提醒测试邮件。",
 		},
 	}
 

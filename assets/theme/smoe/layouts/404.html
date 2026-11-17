@@ -1,0 +1,12 @@
+{{ define "title" }}页面未找到 | {{ site.Title }}{{ end }}
+{{ define "main" }}
+<article>
+    <header class="page-header">
+        <button data-action="back" @click="goBack()" aria-label="返回"></button>
+    </header>
+    <section>
+        <h1>404 Not Found</h1>
+        <p>The page you were looking for is no longer available.</p>
+    </section>
+</article>
+{{ end }}

@@ -1,15 +1,21 @@
 package handler
 
 import (
-	"SMOE/moe/store"
+	"SMOE/moe/blogdata"
+	"SMOE/moe/engine"
+	"net/http"
 
 	"github.com/labstack/echo/v5"
 )
 
-func LikePost(c *echo.Context) error {
-	cid := c.Param("cid")
-	if err := store.IncrementLikes(cid); err != nil {
-		return err
+// LikePost 给文章点赞，计数在下一次刷新时写进 data/stats.json。
+func LikePost(site *engine.Engine, data *blogdata.Store) echo.HandlerFunc {
+	return func(c *echo.Context) error {
+		cid := c.Param("cid")
+		if _, ok := site.Post(cid); !ok {
+			return echo.ErrNotFound
+		}
+		data.Like(cid)
+		return c.JSON(http.StatusOK, map[string]any{"liked": true})
 	}
-	return c.JSON(200, map[string]any{"liked": true})
 }

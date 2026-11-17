@@ -1,7 +1,8 @@
 package mymiddleware
 
 import (
-	"SMOE/moe/store"
+	"SMOE/moe/blogdata"
+	"SMOE/moe/config"
 	"fmt"
 	"html"
 	"log/slog"
@@ -25,15 +26,25 @@ type commentNotifier struct {
 var defaultCommentNotifier = &commentNotifier{}
 var sendCommentNotification = NotifyComment
 
-func SetCommentNotification(c *echo.Context, notification store.CommentNotification) {
+// CommentNotification 是一条新评论的提醒内容。
+type CommentNotification struct {
+	PostTitle  string
+	PostURL    string
+	Comment    blogdata.Comment
+	Parent     *blogdata.Comment // 被回复的评论
+	ApproveURL string            // 带签名的审核链接，点开后还需确认
+	SpamURL    string
+}
+
+func SetCommentNotification(c *echo.Context, notification CommentNotification) {
 	c.Set(commentNotificationKey, notification)
 }
 
-func ConfigureCommentNotifier(cfg store.Config) {
+func ConfigureCommentNotifier(cfg config.Config) {
 	defaultCommentNotifier = newCommentNotifier(cfg)
 }
 
-func newCommentNotifier(cfg store.Config) *commentNotifier {
+func newCommentNotifier(cfg config.Config) *commentNotifier {
 	if cfg.ResendAPI == "" || cfg.MailTo == "" {
 		return &commentNotifier{}
 	}
@@ -46,11 +57,11 @@ func newCommentNotifier(cfg store.Config) *commentNotifier {
 	}
 }
 
-func NotifyComment(notification store.CommentNotification) error {
+func NotifyComment(notification CommentNotification) error {
 	return defaultCommentNotifier.NotifyComment(notification)
 }
 
-func (n *commentNotifier) NotifyComment(notification store.CommentNotification) error {
+func (n *commentNotifier) NotifyComment(notification CommentNotification) error {
 	if n == nil || !n.enabled || n.client == nil {
 		return nil
 	}
@@ -81,14 +92,14 @@ func CommentNotify() echo.MiddlewareFunc {
 				return err
 			}
 
-			notification, ok := c.Get(commentNotificationKey).(store.CommentNotification)
+			notification, ok := c.Get(commentNotificationKey).(CommentNotification)
 			if !ok {
 				return nil
 			}
 
-			go func(notification store.CommentNotification) {
+			go func(notification CommentNotification) {
 				if err := sendCommentNotification(notification); err != nil {
-					slog.Error("send comment notification failed", "cid", notification.PostCID, "coid", notification.Comment.Coid, "err", err)
+					slog.Error("send comment notification failed", "post", notification.PostURL, "comment", notification.Comment.ID, "err", err)
 				}
 			}(notification)
 			return nil
@@ -96,18 +107,14 @@ func CommentNotify() echo.MiddlewareFunc {
 	}
 }
 
-func buildSubject(notification store.CommentNotification) string {
-	title := notification.PostTitle
-	if strings.TrimSpace(title) == "" {
-		title = fmt.Sprintf("文章 %d", notification.PostCID)
-	}
+func buildSubject(notification CommentNotification) string {
 	if notification.Parent != nil {
-		return fmt.Sprintf("你的评论收到了回复 | %s", title)
+		return fmt.Sprintf("你的评论收到了回复 | %s", displayPostTitle(notification))
 	}
-	return fmt.Sprintf("文章有新评论 | %s", title)
+	return fmt.Sprintf("文章有新评论 | %s", displayPostTitle(notification))
 }
 
-func buildTextBody(notification store.CommentNotification) string {
+func buildTextBody(notification CommentNotification) string {
 	var b strings.Builder
 	if notification.Parent != nil {
 		b.WriteString("你收到了新的评论回复。\n\n")
@@ -116,21 +123,26 @@ func buildTextBody(notification store.CommentNotification) string {
 	}
 
 	fmt.Fprintf(&b, "文章: %s\n", displayPostTitle(notification))
-	fmt.Fprintf(&b, "文章 ID: %d\n", notification.PostCID)
+	if notification.PostURL != "" {
+		fmt.Fprintf(&b, "地址: %s\n", notification.PostURL)
+	}
 	fmt.Fprintf(&b, "评论者: %s <%s>\n", notification.Comment.Author, notification.Comment.Mail)
-	if notification.Comment.Url != nil && strings.TrimSpace(*notification.Comment.Url) != "" {
-		fmt.Fprintf(&b, "站点: %s\n", *notification.Comment.Url)
+	if strings.TrimSpace(notification.Comment.URL) != "" {
+		fmt.Fprintf(&b, "站点: %s\n", notification.Comment.URL)
 	}
 	if notification.Parent != nil {
 		fmt.Fprintf(&b, "被回复评论者: %s <%s>\n", notification.Parent.Author, notification.Parent.Mail)
 	}
 	b.WriteString("\n评论内容:\n")
-	b.WriteString(notification.Comment.Text)
+	b.WriteString(notification.Comment.Content)
 	b.WriteString("\n")
+	if notification.ApproveURL != "" {
+		fmt.Fprintf(&b, "\n通过: %s\n标为垃圾: %s\n", notification.ApproveURL, notification.SpamURL)
+	}
 	return b.String()
 }
 
-func buildHTMLBody(notification store.CommentNotification) string {
+func buildHTMLBody(notification CommentNotification) string {
 	var b strings.Builder
 	b.WriteString("<h2>")
 	if notification.Parent != nil {
@@ -139,24 +151,30 @@ func buildHTMLBody(notification store.CommentNotification) string {
 		b.WriteString("站点收到了新的评论")
 	}
 	b.WriteString("</h2>")
-	fmt.Fprintf(&b, "<p><strong>文章:</strong> %s</p>", html.EscapeString(displayPostTitle(notification)))
-	fmt.Fprintf(&b, "<p><strong>文章 ID:</strong> %d</p>", notification.PostCID)
+	if notification.PostURL != "" {
+		fmt.Fprintf(&b, `<p><strong>文章:</strong> <a href="%s">%s</a></p>`, html.EscapeString(notification.PostURL), html.EscapeString(displayPostTitle(notification)))
+	} else {
+		fmt.Fprintf(&b, "<p><strong>文章:</strong> %s</p>", html.EscapeString(displayPostTitle(notification)))
+	}
 	fmt.Fprintf(&b, "<p><strong>评论者:</strong> %s &lt;%s&gt;</p>", html.EscapeString(notification.Comment.Author), html.EscapeString(notification.Comment.Mail))
-	if notification.Comment.Url != nil && strings.TrimSpace(*notification.Comment.Url) != "" {
-		fmt.Fprintf(&b, "<p><strong>站点:</strong> %s</p>", html.EscapeString(*notification.Comment.Url))
+	if strings.TrimSpace(notification.Comment.URL) != "" {
+		fmt.Fprintf(&b, "<p><strong>站点:</strong> %s</p>", html.EscapeString(notification.Comment.URL))
 	}
 	if notification.Parent != nil {
 		fmt.Fprintf(&b, "<p><strong>被回复评论者:</strong> %s &lt;%s&gt;</p>", html.EscapeString(notification.Parent.Author), html.EscapeString(notification.Parent.Mail))
 	}
-	fmt.Fprintf(&b, "<p><strong>评论内容:</strong></p><pre>%s</pre>", html.EscapeString(notification.Comment.Text))
+	fmt.Fprintf(&b, "<p><strong>评论内容:</strong></p><pre>%s</pre>", html.EscapeString(notification.Comment.Content))
+	if notification.ApproveURL != "" {
+		fmt.Fprintf(&b, `<p><a href="%s">通过</a> · <a href="%s">标为垃圾</a></p>`, html.EscapeString(notification.ApproveURL), html.EscapeString(notification.SpamURL))
+	}
 	return b.String()
 }
 
-func displayPostTitle(notification store.CommentNotification) string {
+func displayPostTitle(notification CommentNotification) string {
 	if strings.TrimSpace(notification.PostTitle) != "" {
 		return notification.PostTitle
 	}
-	return fmt.Sprintf("文章 %d", notification.PostCID)
+	return "未命名文章"
 }
 
 func uniqueEmails(emails []string, exclude ...string) []string {

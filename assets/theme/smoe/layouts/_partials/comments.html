@@ -1,0 +1,56 @@
+{{- /* 评论来自程序维护的 data/comments/<地址最后一段>.yaml，只显示已通过的；按楼层分组，回复归入其根评论那一组（对应旧版 GroupComments）。 */ -}}
+{{- $all := slice }}
+{{- with hugo.Data.comments }}{{ with index . (path.Base $.RelPermalink) }}{{ $all = . }}{{ end }}{{ end }}
+{{- $approved := sort (where $all "status" "approved") "id" }}
+{{- $root := newScratch }}
+{{- range $approved }}
+    {{- $id := string .id }}
+    {{- $r := $id }}
+    {{- with .parent }}{{ with $root.Get (string .) }}{{ $r = . }}{{ end }}{{ end }}
+    {{- $root.Set $id $r }}
+{{- end }}
+<footer>
+
+    <form name="comment-form" autocomplete="off" x-bind="comment" method="post" action="{{ partial "url.html" .RelPermalink }}/comment">
+        <h4>发表评论</h4>
+        <div>
+            <input type="text"   aria-label="author" name="author" placeholder="昵称*"  maxlength="50" required>
+            <input type="email"  aria-label="email"  name="mail"   placeholder="邮箱*"  maxlength="50" required>
+            <input type="text"   aria-label="url"    name="url"    placeholder="站点"   maxlength="50">
+            <input type="hidden" name="parent" required x-model="comment.parent">
+            <input type="hidden" name="cid"    required x-model="comment.cid">
+        </div>
+        <textarea aria-label="comment" rows="5" name="text" maxlength="1000" placeholder="说点什么..." required></textarea>
+        <div>
+            <button type="button" x-show="comment.parent !== 0" x-bind="comment.CancelReply">取消回复</button>
+            <button type="submit">发表评论</button>
+        </div>
+    </form>
+
+    <div>
+        {{- with $approved }}
+        <h2>评论列表</h2>
+        {{- end }}
+        {{- range $approved }}
+        {{- $gid := string .id }}
+        {{- if eq ($root.Get $gid) $gid }}
+        <ol>
+            {{- range $approved }}
+            {{- if eq ($root.Get (string .id)) $gid }}
+            {{- $hash := md5 (lower (trim (.mail | default "") " \t\r\n")) }}
+            <li id="{{ .id }}">
+                <img alt="{{ .author }}" width="40" height="40"
+                     src="https://cravatar.cn/avatar/{{ $hash }}?s=40&d=identicon"
+                     onerror="this.onerror=null;this.src='https://gravatar.loli.net/avatar/{{ $hash }}?s=40&d=identicon'">
+                <cite>{{ if .url }}<a href="{{ .url }}" rel="external nofollow">{{ .author }}</a>{{ else }}{{ .author }}{{ end }}</cite>
+                <time>{{ with .created }}{{ (time.AsTime .).Format "2006年01月02日" }}{{ end }}</time>
+                <button x-bind="comment.Reply">回复</button>
+                <p>{{ .content }}</p>
+            </li>
+            {{- end }}
+            {{- end }}
+        </ol>
+        {{- end }}
+        {{- end }}
+    </div>
+</footer>
