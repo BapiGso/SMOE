@@ -12,11 +12,11 @@
             <p>{{ partial "excerpt.html" . }}...</p>
         </div>
         <div>
-            <i class="icon-letter"></i>
+            {{ partial "icon.html" "letter" }}
             <p>{{ strings.RuneCount (strings.TrimLeft "\r\n" .RawContent) }}</p>
-            <i class="icon-view"></i>
+            {{ partial "icon.html" "view" }}
             <p>{{ $st.views | default 0 }}</p>
-            <i class="icon-like"></i>
+            {{ partial "icon.html" "like" }}
             <p>{{ $st.likes | default 0 }}</p>
         </div>
     </div>

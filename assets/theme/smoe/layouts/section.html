@@ -95,7 +95,7 @@
 
 <article class="page timeline">
     <header class="page-header">
-        <button data-action="back" @click="goBack()" aria-label="返回"></button>
+        <button data-action="back" @click="goBack()" aria-label="返回">{{ partial "icon.html" "back" }}</button>
     </header>
     <section>
         {{- range .Pages.ByDate.Reverse.GroupByDate "2006" }}

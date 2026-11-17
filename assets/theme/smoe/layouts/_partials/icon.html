@@ -1,0 +1,6 @@
+{{- /* 把 assets/icons/<名字>.svg 原样内联，并加上 class="icon-<名字>" 供 CSS 选择。用法：{{ partial "icon.html" "menu" }} */ -}}
+{{- with resources.Get (printf "icons/%s.svg" .) }}
+{{- replace (strings.TrimSpace .Content) "<svg " (printf `<svg class="icon-%s" ` $) 1 | safeHTML }}
+{{- else }}
+{{- errorf "icon.html: assets/icons/%s.svg 不存在" . }}
+{{- end -}}
