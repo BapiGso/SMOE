@@ -15,9 +15,6 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// 浏览去重表的清空周期：同一访客在这段时间内重复打开同一篇只算一次
-const viewDedupWindow = 6 * time.Hour
-
 // Store 管理 data/stats.json 和 data/comments/。
 // 计数先在内存里累加，Flush 时才写盘，所以页面上的数字最多滞后一个刷新周期；评论立即写盘。
 type Store struct {
@@ -27,15 +24,13 @@ type Store struct {
 	mu    sync.Mutex
 	stats map[string]Stat
 	dirty bool
-	seen  map[string]struct{} // 已计过浏览的 访客+slug
 
-	flushMu   sync.Mutex
 	commentMu sync.Mutex
 }
 
 // Open 读取 dir（即 usr/data）下已有的计数。
 func Open(dir string, changed func()) (*Store, error) {
-	s := &Store{dir: dir, changed: changed, stats: map[string]Stat{}, seen: map[string]struct{}{}}
+	s := &Store{dir: dir, changed: changed, stats: map[string]Stat{}}
 	b, err := os.ReadFile(filepath.Join(dir, "stats.json"))
 	switch {
 	case err == nil:
@@ -48,22 +43,17 @@ func Open(dir string, changed func()) (*Store, error) {
 	return s, nil
 }
 
-// View 记一次浏览，visitor 通常是访客 IP。
-func (s *Store) View(slug, visitor string) {
-	key := visitor + "\x00" + slug
+// View 记一次浏览。去重由调用方负责。
+func (s *Store) View(slug string) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	if _, ok := s.seen[key]; ok {
-		return
-	}
-	s.seen[key] = struct{}{}
 	st := s.stats[slug]
 	st.Views++
 	s.stats[slug] = st
 	s.dirty = true
 }
 
-// Like 记一次点赞。防刷由路由上的限流负责。
+// Like 记一次点赞。防刷由调用方负责。
 func (s *Store) Like(slug string) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -73,11 +63,8 @@ func (s *Store) Like(slug string) {
 	s.dirty = true
 }
 
-// Flush 把有变化的计数写进 stats.json。
+// Flush 把有变化的计数写进 stats.json。不要并发调用：平时只由 Run 调用，退出时 Run 结束后再调用一次。
 func (s *Store) Flush() error {
-	s.flushMu.Lock()
-	defer s.flushMu.Unlock()
-
 	s.mu.Lock()
 	if !s.dirty {
 		s.mu.Unlock()
@@ -99,27 +86,18 @@ func (s *Store) Flush() error {
 	return nil
 }
 
-// Run 每隔 every 写一次计数并定期清空浏览去重表；ctx 结束时最后写一次。
+// Run 每隔 every 写一次计数，直到 ctx 结束。最后一次由调用方在连接排空后 Flush。
 func (s *Store) Run(ctx context.Context, every time.Duration) {
-	flush := time.NewTicker(every)
-	defer flush.Stop()
-	reset := time.NewTicker(viewDedupWindow)
-	defer reset.Stop()
+	t := time.NewTicker(every)
+	defer t.Stop()
 	for {
 		select {
 		case <-ctx.Done():
-			if err := s.Flush(); err != nil {
-				slog.Error("blogdata: final flush failed", "err", err)
-			}
 			return
-		case <-flush.C:
+		case <-t.C:
 			if err := s.Flush(); err != nil {
 				slog.Error("blogdata: flush failed", "err", err)
 			}
-		case <-reset.C:
-			s.mu.Lock()
-			clear(s.seen)
-			s.mu.Unlock()
 		}
 	}
 }

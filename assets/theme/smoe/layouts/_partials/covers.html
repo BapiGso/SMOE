@@ -1,0 +1,15 @@
+{{- /* 自动封面：uploads/background 下的 .avif 按文件名排序，按文章在列表中的位置轮换（与旧版一致）。
+       返回 文章地址 → 封面地址；用 partialCached 调用，每次构建只算一次。 */ -}}
+{{- $covers := slice -}}
+{{- if os.FileExists "uploads/background" -}}
+  {{- range os.ReadDir "uploads/background" -}}
+    {{- if and (not .IsDir) (eq (lower (path.Ext .Name)) ".avif") }}{{ $covers = $covers | append .Name }}{{ end -}}
+  {{- end -}}
+{{- end -}}
+{{- $m := dict -}}
+{{- with $covers -}}
+  {{- range $i, $p := (site.GetPage "/archives").RegularPages -}}
+    {{- $m = merge $m (dict $p.RelPermalink (printf "/usr/uploads/background/%s" (index $covers (mod $i (len $covers))))) -}}
+  {{- end -}}
+{{- end -}}
+{{- return $m -}}

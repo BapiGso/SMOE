@@ -3,8 +3,6 @@
  * @author Smoe
  * @url https://smoe.cc
  */
-gsap.registerPlugin(ScrollTrigger, SplitText);
-
 // 开场推门（#door）拉开后整块移除，免得花在屏幕外继续转
 {
     const door = document.getElementById('door');
@@ -13,42 +11,12 @@ gsap.registerPlugin(ScrollTrigger, SplitText);
 
 document.addEventListener('alpine:init', () => {
     Alpine.data('smoe', () => {
-        const preview = Object.assign(document.createElement('aside'));
-        // 系统开了“减少动态效果”时不做入场和视差，文章层直接切换
-        const motion = !matchMedia('(prefers-reduced-motion: reduce)').matches;
-        // 整页加载时有约 3 秒的开场推门（#door，2 秒时开始拉开），入场动画等它拉开再开始
-        const curtain = 2.4;
-
-        // 中文没有空格，SplitText 默认会把整段标题当成一个不能换行的词；先按词切开，再用不可见分隔符交给它。
-        // 标点不单独成词（右标点粘前一个词，左括号/引号粘后一个词），否则换行时会出现行首的“！”“）”
-        const sep = String.fromCharCode(0x2063);
-        const segmenter = new Intl.Segmenter('zh', { granularity: 'word' });
-        const glue = (a, b) => /[\p{Ps}\p{Pi}]$/u.test(a) || (/\S$/.test(a) && /^[\p{Pe}\p{Pf}\p{Po}\p{Pd}]/u.test(b));
-        const splitChars = (el) => SplitText.create(el, {
-            type: 'chars',
-            smartWrap: true,
-            prepareText: (text) => Array.from(segmenter.segment(text), s => s.segment)
-                .reduce((out, s, i, all) => out + (i && !glue(all[i - 1], s) ? sep : '') + s, ''),
-            wordDelimiter: { delimiter: sep, replaceWith: '' },
-        });
-
-        const revealTitle = (el, delay) => {
-            if (!el || !motion) return;
-            gsap.from(splitChars(el).chars, {
-                yPercent: 60, autoAlpha: 0, duration: 0.6, ease: 'back.out(1.7)', stagger: 0.03, delay,
-            });
-        };
-
-        // 卡片滚动进视口时依次浮现；“加载更多”拼进来的卡片同样走这里
-        const revealCards = (cards) => {
-            if (!cards.length || !motion) return;
-            gsap.set(cards, { autoAlpha: 0, y: 40 });
-            ScrollTrigger.batch(cards, {
-                start: 'top 90%',
-                once: true,
-                onEnter: (batch) => gsap.to(batch, { autoAlpha: 1, y: 0, duration: 0.6, ease: 'power2.out', stagger: 0.12 }),
-            });
-        };
+        const preview = document.createElement('aside');
+        const root = document.documentElement;
+        // 深浅色：<meta name="color-scheme"> 是 "light dark"（跟随系统）、"light" 或 "dark"，页面渲染跟着它
+        const scheme = document.querySelector('meta[name="color-scheme"]');
+        const systemDark = matchMedia('(prefers-color-scheme: dark)');
+        const isDark = () => scheme.content === 'dark' || (scheme.content !== 'light' && systemDark.matches);
 
         const resetCopyState = (pre) => {
             delete pre.dataset.copied;
@@ -116,20 +84,31 @@ document.addEventListener('alpine:init', () => {
             });
         };
 
-        // overwrite: 关到一半又打开时，杀掉关闭动画，它的 onComplete 就不会把新打开的层移除
+        // 文章层滑入滑出，时长和缓动取 CSS 的 --dur-l、--ease（系统开了“减少动态效果”时时长为 0）。
+        // 关到一半又打开时 cancel 掉关闭动画，它的 finished 会 reject，不会把新打开的层移除
+        let slide;
+        const animateSlide = (open) => {
+            slide?.cancel();
+            const css = getComputedStyle(root);
+            slide = preview.animate([{ translate: '100% 0' }, { translate: '0 0' }], {
+                duration: parseFloat(css.getPropertyValue('--dur-l')) * 1000,
+                easing: css.getPropertyValue('--ease'),
+                direction: open ? 'normal' : 'reverse',
+                fill: 'forwards',
+            });
+            return slide.finished;
+        };
+
         const openPreview = () => {
             document.body.prepend(preview);
-            document.documentElement.className = '';
-            document.documentElement.style.overflow = 'hidden';
-            gsap.fromTo(preview, { xPercent: 100 }, { xPercent: 0, duration: motion ? 0.5 : 0, ease: 'power2.out', overwrite: true });
+            root.className = '';
+            root.style.overflow = 'hidden';
+            animateSlide(true).catch(() => {});
         };
 
         const closePreview = () => {
-            document.documentElement.style.overflow = '';
-            gsap.to(preview, {
-                xPercent: 100, duration: motion ? 0.5 : 0, ease: 'power2.out', overwrite: true,
-                onComplete: () => preview.remove(),
-            });
+            root.style.overflow = '';
+            animateSlide(false).then(() => preview.remove(), () => {});
         };
 
         return {
@@ -138,7 +117,7 @@ document.addEventListener('alpine:init', () => {
                 const match = window.location.pathname.match(/\/page\/(\d+)/);
                 return match ? parseInt(match[1]) + 1 : 2;
             })(),
-            darkMode: localStorage.getItem('theme') === 'dark',
+            darkMode: isDark(),
 
             lightbox(e) {
                 if (e.target.tagName !== 'IMG' || e.target.closest('a, dialog')) return;
@@ -169,10 +148,14 @@ document.addEventListener('alpine:init', () => {
                 document.documentElement.style.setProperty('--tx', x + 'px');
                 document.documentElement.style.setProperty('--ty', y + 'px');
 
+                // 切到与当前所见相反的一边；结果和系统一致时清掉记录，回到跟随系统
                 const apply = () => {
-                    this.darkMode = !this.darkMode;
-                    document.documentElement.dataset.theme = this.darkMode ? 'dark' : '';
-                    localStorage.setItem('theme', this.darkMode ? 'dark' : 'light');
+                    const target = isDark() ? 'light' : 'dark';
+                    const system = systemDark.matches ? 'dark' : 'light';
+                    if (target === system) localStorage.removeItem('theme');
+                    else localStorage.setItem('theme', target);
+                    scheme.content = target === system ? 'light dark' : target;
+                    this.darkMode = target === 'dark';
                 };
 
                 if (!document.startViewTransition) return apply();
@@ -184,42 +167,22 @@ document.addEventListener('alpine:init', () => {
                     closePreview();
                     history.back();
                 } else {
-                    gsap.to(document.body, {
-                        xPercent: 100, duration: motion ? 0.5 : 0, ease: 'power2.out',
-                        onComplete: () => location.href = '/',
-                    });
+                    location.href = '/';
                 }
             },
 
-            // 首图跟随鼠标反向偏移，最多 ±4vw/vh（图片宽高就是 100vw/vh）；quickTo 追到目标后自己停，不再每帧空转
+            // 首图跟随鼠标反向偏移：这里只写鼠标位置，偏移和缓动在 CSS（main > figure > img）
             parallax(el) {
-                if (!motion) return;
-                const img = el.firstElementChild;
-                const xTo = gsap.quickTo(img, 'xPercent', { duration: 0.8, ease: 'power3' });
-                const yTo = gsap.quickTo(img, 'yPercent', { duration: 0.8, ease: 'power3' });
                 window.addEventListener('mousemove', (e) => {
-                    xTo((e.clientX / window.innerWidth - 0.5) * -8);
-                    yTo((e.clientY / window.innerHeight - 0.5) * -8);
+                    el.style.setProperty('--mx', e.clientX / window.innerWidth - 0.5);
+                    el.style.setProperty('--my', e.clientY / window.innerHeight - 0.5);
                 }, { passive: true });
             },
 
             init() {
-                if (this.darkMode) document.documentElement.dataset.theme = 'dark';
+                systemDark.addEventListener('change', () => this.darkMode = isDark());
                 enhanceCodeBlocks(document);
                 window.$ = (selector) => document.querySelector(selector);
-                // 首页：最新一篇的标题逐字浮现，日期和摘要随后淡入；文章页直接打开时标题同样逐字浮现
-                const hero = $('main > div');
-                if (hero && motion) {
-                    revealTitle(hero.querySelector('h2 > a'), curtain);
-                    gsap.from(hero.querySelectorAll(':scope > p, :scope > div'), {
-                        autoAlpha: 0, y: 20, duration: 0.8, ease: 'power2.out', stagger: 0.2, delay: curtain + 0.5,
-                    });
-                }
-                revealTitle($('body > article > h1'), curtain);
-                revealCards(document.querySelectorAll('main > ol > li'));
-                // 窄屏下卡片高度随懒加载的封面变化，图片加载完（load 不冒泡，用捕获）重新计算触发位置
-                const refresh = gsap.delayedCall(0.3, () => ScrollTrigger.refresh()).pause();
-                $('main')?.addEventListener('load', () => refresh.restart(true), true);
                 window.onpopstate = (e) => {
                     if (!e.state) return (location.href = location.origin);
                     document.title = e.state.t;
@@ -230,14 +193,14 @@ document.addEventListener('alpine:init', () => {
 
             async ajaxPost(url) {
                 const doc = new DOMParser().parseFromString(await (await fetch(url)).text(), 'text/html');
-                preview.innerHTML = doc.body.innerHTML;
+                // 只取正文，开场推门和脚本不要跟着进来
+                preview.replaceChildren(doc.querySelector('body > article') ?? '');
                 enhanceCodeBlocks(preview);
                 history.replaceState({ t: document.title, u: location.origin }, '', location.href);
                 history.pushState({ t: doc.title, u: url }, '', url);
                 document.title = doc.title;
                 this.$refs.nav.open = false;
                 openPreview();
-                revealTitle(preview.querySelector('article > h1'), 0.3);
             },
 
             async ajaxNextPage(e) {
@@ -258,21 +221,12 @@ document.addEventListener('alpine:init', () => {
                     }
                     const cards = doc.querySelectorAll('main > ol > li');
                     list.append(...cards);
-                    revealCards(cards);
                     this.hasMore = doc.querySelector('main > button[data-more]')?.dataset.more === 'true';
                     this.pageNum++;
                 } finally {
                     button.disabled = false;
                     button.textContent = text;
                 }
-            },
-
-            vibrant(el) {
-                const swatches = new Vibrant(el).swatches();
-                $('#vibrant polygon').style.fill = swatches['DarkVibrant'].getHex();
-                document.querySelectorAll('.line1, .line2, .line3').forEach(icon => {
-                    icon.style.stroke = swatches['Vibrant'].getHex();
-                });
             },
 
             bgmPlayer: {
@@ -282,7 +236,6 @@ document.addEventListener('alpine:init', () => {
                     this.bgmPlayer.playing = !e.target.paused;
                     e.target.parentElement.style.setProperty('--play-progress', e.target.currentTime / e.target.duration * 100 + '%');
                 },
-                '@ended'() { console.log('bgm complete'); },
                 Button: {
                     '@click'() {
                         this.$refs.bgmPlayer.paused ? this.$refs.bgmPlayer.play() : this.$refs.bgmPlayer.pause();

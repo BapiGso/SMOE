@@ -1,7 +1,7 @@
 {{ define "main" }}
 <article data-id="{{ path.Base .RelPermalink }}">
     <header class="page-header">
-        <button data-action="back" @click="goBack()" aria-label="返回">{{ partial "icon.html" "back" }}</button>
+        {{ partial "back.html" }}
     </header>
     <section class="markdown-body">
         {{ .Content }}

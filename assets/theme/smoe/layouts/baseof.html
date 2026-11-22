@@ -3,6 +3,9 @@
 <head>
     <title>{{ block "title" . }}{{ if not .IsHome }}{{ .Title }} | {{ end }}{{ site.Title }}{{ end }}</title>
     <meta charset="UTF-8">
+    <meta name="color-scheme" content="light dark">
+    {{- /* 恢复手动选的深浅色，放在样式之前避免闪一下 */}}
+    <script>try { document.querySelector('meta[name="color-scheme"]').content = localStorage.getItem('theme') || 'light dark' } catch {}</script>
     <meta content="yes" name="mobile-web-app-capable"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <meta content="notranslate" name="google"/>
@@ -10,10 +13,9 @@
     <meta content="{{ site.Params.keywords }}" name="keywords"/>
     <meta name="theme-color" content="#9370DB">
     {{- range slice "css/backup.css" "css/Diaspora.css" "css/github-markdown.css" }}
-    <link rel="stylesheet" href="{{ (resources.Get . | fingerprint).RelPermalink }}">
+    <link rel="stylesheet" href="{{ (resources.Get . | minify | fingerprint).RelPermalink }}">
     {{- end }}
-    <link rel="icon" type="image/png" href="/favicon.ico">
-    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="icon" href="{{ (resources.Get "favicon.ico").RelPermalink }}">
     <link rel="alternate" type="application/rss+xml" title="{{ site.Title }} &raquo; RSS 2.0" href="/feed" />
 </head>
 <body x-data="smoe">
@@ -28,9 +30,7 @@
     {{- end }}
 </div>
 {{ block "main" . }}{{ end }}
-{{- range slice "js/gsap.min.js" "js/ScrollTrigger.min.js" "js/SplitText.min.js" "js/plugin.js" "js/Smoe.js" }}
-<script src="{{ (resources.Get . | fingerprint).RelPermalink }}"></script>
-{{- end }}
+<script src="{{ (resources.Get "js/Smoe.js" | minify | fingerprint).RelPermalink }}"></script>
 <script src="{{ (resources.Get "js/alpine.min.js" | fingerprint).RelPermalink }}" defer></script>
 </body>
 </html>

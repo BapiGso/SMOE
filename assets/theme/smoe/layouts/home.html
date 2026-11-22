@@ -1,5 +1,5 @@
 {{ define "main" }}
-{{- $pager := .Paginate (where site.RegularPages "Section" "archives").ByDate.Reverse -}}
+{{- $pager := .Paginate (site.GetPage "/archives").RegularPages -}}
 {{- $list := $pager.Pages }}
 <main>
     {{ partial "nav.html" . }}
@@ -13,7 +13,7 @@
     {{- if and (eq $pager.PageNumber 1) $list }}
     {{- with index $list 0 }}
     <div>
-        <p>{{ partial "datestr.html" .Date }}</p>
+        <p>{{ .Date | time.Format "January 02, 2006" }}</p>
         <h2><a @click.prevent="ajaxPost($el.href)" href="{{ partial "url.html" .RelPermalink }}">{{ .Title }}</a></h2>
         <div><p>{{ partial "excerpt.html" . }}...</p></div>
     </div>

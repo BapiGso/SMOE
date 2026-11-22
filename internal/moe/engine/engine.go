@@ -8,7 +8,6 @@ package engine
 import (
 	"context"
 	"errors"
-	"fmt"
 	"io/fs"
 	"log/slog"
 	"os"
@@ -140,9 +139,6 @@ func (e *Engine) build() (*snapshot, error) {
 	if err := h.Build(hugolib.BuildCfg{}); err != nil {
 		return nil, err
 	}
-	if err := copyStatic(h, fs.PublishDirStatic); err != nil {
-		return nil, err
-	}
 
 	snap := &snapshot{
 		out:     fs.PublishDir,
@@ -157,35 +153,6 @@ func (e *Engine) build() (*snapshot, error) {
 		}
 	}
 	return snap, nil
-}
-
-// copyStatic 把 static/（主题与 usr/ 的合并视图）复制进发布目录。
-// Hugo 命令行是在构建之外单独做这一步的（commands.copyStatic），作为库调用时要自己做。
-// 产物在内存里，大文件应放 usr/uploads 而不是 usr/static。
-func copyStatic(h *hugolib.HugoSites, dst afero.Fs) error {
-	root := string(filepath.Separator)
-	for _, sfs := range h.BaseFs.SourceFilesystems.Static {
-		err := afero.Walk(sfs.Fs, root, func(p string, fi os.FileInfo, err error) error {
-			if err != nil {
-				if p == root && errors.Is(err, fs.ErrNotExist) {
-					return nil // 没有 static 目录
-				}
-				return err
-			}
-			if fi.IsDir() {
-				return nil
-			}
-			b, err := afero.ReadFile(sfs.Fs, p)
-			if err != nil {
-				return err
-			}
-			return afero.WriteFile(dst, filepath.Join(root, sfs.PublishFolder, p), b, 0o644)
-		})
-		if err != nil {
-			return fmt.Errorf("copy static: %w", err)
-		}
-	}
-	return nil
 }
 
 // Post 按 ID（/archives/<id> 的最后一段）查找已发布的文章，返回标题。评论、点赞、浏览只接受存在的文章。
@@ -218,7 +185,7 @@ func (e *Engine) Trigger() {
 }
 
 // 会影响构建结果的 usr/ 子目录，递归监听
-var watchedDirs = []string{"content", "data", "layouts", "assets", "static", "i18n", "archetypes"}
+var watchedDirs = []string{"content", "data", "layouts", "assets", "i18n", "archetypes"}
 
 // 改动停止这么久之后才重建，编辑器保存时的连串事件只算一次
 const settle = 500 * time.Millisecond
@@ -323,24 +290,25 @@ func addTree(w *fsnotify.Watcher, dir string) {
 	})
 }
 
-// File 返回最近一次成功构建中某个文件的内容，name 形如 "/archives/1586584980/index.html"。
-func (e *Engine) File(name string) ([]byte, time.Time, bool) {
+// Open 打开最近一次成功构建中的一个文件（不是目录），name 形如 "/archives/1586584980/index.html"。
+// 每个句柄有自己的读位置，可以并发打开；调用方负责关闭。
+func (e *Engine) Open(name string) (afero.File, fs.FileInfo, bool) {
 	e.mu.RLock()
 	snap := e.snap
 	e.mu.RUnlock()
 	if snap == nil {
-		return nil, time.Time{}, false
+		return nil, nil, false
 	}
-	out := snap.out
-	fi, err := out.Stat(name)
-	if err != nil || fi.IsDir() {
-		return nil, time.Time{}, false
-	}
-	b, err := afero.ReadFile(out, name)
+	f, err := snap.out.Open(name)
 	if err != nil {
-		return nil, time.Time{}, false
+		return nil, nil, false
 	}
-	return b, fi.ModTime(), true
+	fi, err := f.Stat()
+	if err != nil || fi.IsDir() {
+		f.Close()
+		return nil, nil, false
+	}
+	return f, fi, true
 }
 
 // Ready 报告是否已有可用的构建产物。

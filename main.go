@@ -18,7 +18,5 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	s := moe.New(theme)
-	s.LoadMiddlewareRoutes()
-	s.Listen()
+	moe.New(theme).Listen()
 }

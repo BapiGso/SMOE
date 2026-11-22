@@ -16,7 +16,6 @@ cover = "/usr/uploads/71767119_p0.avif"
 pagerSize = 5
 
 [outputs]
-home = ["html", "rss"]
 page = ["html", "markdown"]
 section = ["html"]
 
@@ -24,7 +23,7 @@ section = ["html"]
 [outputFormats.rss]
 baseName = "feed"
 
-# 以下对齐旧版 goldmark 配置：硬换行、允许原始 HTML、不做智能标点、LaTeX 交给 MathJax、github 高亮
+# 以下对齐旧版 goldmark 配置：硬换行、允许原始 HTML、不做智能标点、LaTeX 公式（构建时转 MathML）、github 高亮
 [markup.goldmark.renderer]
 hardWraps = true
 unsafe = true

@@ -2,7 +2,7 @@
 {{- $st := partial "stats.html" . }}
 <article data-id="{{ path.Base .RelPermalink }}">
     <header>
-        <button data-action="back" @click="goBack()" aria-label="返回">{{ partial "icon.html" "back" }}</button>
+        {{ partial "back.html" }}
         {{- /* 播放/暂停图标由 CSS 画（::before/::after 的 clip-path 变形），状态看 aria-pressed */}}
         <button data-action="play" title="播放/暂停" x-bind="bgmPlayer.Button" :aria-pressed="bgmPlayer.playing"></button>
         <h3>{{ .Title }}</h3>
@@ -12,7 +12,7 @@
         <button data-action="theme" @click="toggleDark($event)" :title="darkMode ? '浅色模式' : '深色模式'">{{ partial "icon.html" "theme" }}</button>
     </header>
     <h1>{{ .Title }}</h1>
-    <span>{{ partial "datestr.html" .Date }} · 阅读 {{ $st.views | default 0 }} · 字数 {{ strings.RuneCount (strings.TrimLeft "\r\n" .RawContent) }} · 喜欢 <span data-like-count>{{ $st.likes | default 0 }}</span></span>
+    <span>{{ .Date | time.Format "January 02, 2006" }} · 阅读 {{ $st.views | default 0 }} · 字数 {{ strings.RuneCount (strings.TrimLeft "\r\n" .RawContent) }} · 喜欢 <span data-like-count>{{ $st.likes | default 0 }}</span></span>
     <section class="markdown-body" @click="lightbox($event)">
         {{ .Content }}
         {{- partial "mermaid.html" . }}

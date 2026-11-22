@@ -1,2 +1,2 @@
-{{- /* LaTeX 原样交给 MathJax，统一成 \( \) 与 \[ \] 定界符（旧版 goldmark-latex 的输出）。 */ -}}
-{{- if eq .Type "block" }}\[{{ .Inner }}\]{{ else }}\({{ .Inner }}\){{ end -}}
+{{- /* LaTeX 在构建时由 Hugo 内置的 KaTeX 转成 MathML，浏览器原生显示，不用加载 MathJax。写错的公式标红显示，不会让构建失败。 */ -}}
+{{- transform.ToMath .Inner (dict "displayMode" (eq .Type "block") "throwOnError" false "strict" "ignore") -}}
