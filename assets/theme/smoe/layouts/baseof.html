@@ -17,9 +17,20 @@
     <link rel="alternate" type="application/rss+xml" title="{{ site.Title }} &raquo; RSS 2.0" href="/feed" />
 </head>
 <body x-data="smoe">
+{{- /* 开场推门：图层在 backup.css，结构和时间线在 Diaspora.css 的 #door，播完由 Smoe.js 移除 */}}
+<div id="door" aria-hidden="true">
+    {{- range slice "l" "r" }}
+    <div class="door-{{ . }}"><div class="stage"><div class="medal">
+        <i class="base"></i>
+        <div class="bloom"><div class="grow-o"><i class="spin-cw"></i></div><div class="grow-i"><i class="spin-ccw"></i></div></div>
+        <i class="top"></i>
+    </div></div></div>
+    {{- end }}
+</div>
 {{ block "main" . }}{{ end }}
-<script src="{{ (resources.Get "js/plugin.js" | fingerprint).RelPermalink }}"></script>
-<script src="{{ (resources.Get "js/Smoe.js" | fingerprint).RelPermalink }}"></script>
+{{- range slice "js/gsap.min.js" "js/ScrollTrigger.min.js" "js/SplitText.min.js" "js/plugin.js" "js/Smoe.js" }}
+<script src="{{ (resources.Get . | fingerprint).RelPermalink }}"></script>
+{{- end }}
 <script src="{{ (resources.Get "js/alpine.min.js" | fingerprint).RelPermalink }}" defer></script>
 </body>
 </html>

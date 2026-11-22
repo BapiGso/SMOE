@@ -3,9 +3,53 @@
  * @author Smoe
  * @url https://smoe.cc
  */
+gsap.registerPlugin(ScrollTrigger, SplitText);
+
+// 开场推门（#door）拉开后整块移除，免得花在屏幕外继续转
+{
+    const door = document.getElementById('door');
+    door?.addEventListener('animationend', (e) => e.animationName === 'door-l' && door.remove());
+}
+
 document.addEventListener('alpine:init', () => {
     Alpine.data('smoe', () => {
         const preview = Object.assign(document.createElement('aside'));
+        // 系统开了“减少动态效果”时不做入场和视差，文章层直接切换
+        const motion = !matchMedia('(prefers-reduced-motion: reduce)').matches;
+        // 整页加载时有约 3 秒的开场推门（#door，2 秒时开始拉开），入场动画等它拉开再开始
+        const curtain = 2.4;
+
+        // 中文没有空格，SplitText 默认会把整段标题当成一个不能换行的词；先按词切开，再用不可见分隔符交给它。
+        // 标点不单独成词（右标点粘前一个词，左括号/引号粘后一个词），否则换行时会出现行首的“！”“）”
+        const sep = String.fromCharCode(0x2063);
+        const segmenter = new Intl.Segmenter('zh', { granularity: 'word' });
+        const glue = (a, b) => /[\p{Ps}\p{Pi}]$/u.test(a) || (/\S$/.test(a) && /^[\p{Pe}\p{Pf}\p{Po}\p{Pd}]/u.test(b));
+        const splitChars = (el) => SplitText.create(el, {
+            type: 'chars',
+            smartWrap: true,
+            prepareText: (text) => Array.from(segmenter.segment(text), s => s.segment)
+                .reduce((out, s, i, all) => out + (i && !glue(all[i - 1], s) ? sep : '') + s, ''),
+            wordDelimiter: { delimiter: sep, replaceWith: '' },
+        });
+
+        const revealTitle = (el, delay) => {
+            if (!el || !motion) return;
+            gsap.from(splitChars(el).chars, {
+                yPercent: 60, autoAlpha: 0, duration: 0.6, ease: 'back.out(1.7)', stagger: 0.03, delay,
+            });
+        };
+
+        // 卡片滚动进视口时依次浮现；“加载更多”拼进来的卡片同样走这里
+        const revealCards = (cards) => {
+            if (!cards.length || !motion) return;
+            gsap.set(cards, { autoAlpha: 0, y: 40 });
+            ScrollTrigger.batch(cards, {
+                start: 'top 90%',
+                once: true,
+                onEnter: (batch) => gsap.to(batch, { autoAlpha: 1, y: 0, duration: 0.6, ease: 'power2.out', stagger: 0.12 }),
+            });
+        };
+
         const resetCopyState = (pre) => {
             delete pre.dataset.copied;
             delete pre.dataset.error;
@@ -72,19 +116,20 @@ document.addEventListener('alpine:init', () => {
             });
         };
 
+        // overwrite: 关到一半又打开时，杀掉关闭动画，它的 onComplete 就不会把新打开的层移除
         const openPreview = () => {
-            document.body.insertAdjacentElement('afterbegin', preview);
-            requestAnimationFrame(() => requestAnimationFrame(() => {
-                document.documentElement.className = '';
-                document.documentElement.style.overflow = 'hidden';
-                preview.style.transform = 'unset';
-            }));
+            document.body.prepend(preview);
+            document.documentElement.className = '';
+            document.documentElement.style.overflow = 'hidden';
+            gsap.fromTo(preview, { xPercent: 100 }, { xPercent: 0, duration: motion ? 0.5 : 0, ease: 'power2.out', overwrite: true });
         };
 
         const closePreview = () => {
-            preview.style.transform = 'translateX(100%)';
             document.documentElement.style.overflow = '';
-            setTimeout(() => preview.remove(), 500);
+            gsap.to(preview, {
+                xPercent: 100, duration: motion ? 0.5 : 0, ease: 'power2.out', overwrite: true,
+                onComplete: () => preview.remove(),
+            });
         };
 
         return {
@@ -139,34 +184,42 @@ document.addEventListener('alpine:init', () => {
                     closePreview();
                     history.back();
                 } else {
-                    document.body.style.transition = 'transform 0.5s cubic-bezier(0.25, 0.5, 0.5, 0.9)';
-                    document.body.style.transform = 'translateX(100%)';
-                    setTimeout(() => location.href = '/', 500);
+                    gsap.to(document.body, {
+                        xPercent: 100, duration: motion ? 0.5 : 0, ease: 'power2.out',
+                        onComplete: () => location.href = '/',
+                    });
                 }
             },
 
+            // 首图跟随鼠标反向偏移，最多 ±4vw/vh（图片宽高就是 100vw/vh）；quickTo 追到目标后自己停，不再每帧空转
             parallax(el) {
+                if (!motion) return;
                 const img = el.firstElementChild;
-                let tx = 0, ty = 0, cx = 0, cy = 0;
-                const friction = 0.1;
-                const onMove = e => {
-                    tx = (e.clientX / window.innerWidth  - 0.5) * -8;
-                    ty = (e.clientY / window.innerHeight - 0.5) * -8;
-                };
-                window.addEventListener('mousemove', onMove, { passive: true });
-                const loop = () => {
-                    cx += (tx - cx) * friction;
-                    cy += (ty - cy) * friction;
-                    img.style.transform = `translate3d(${cx.toFixed(2)}vw,${cy.toFixed(2)}vh,0)`;
-                    requestAnimationFrame(loop);
-                };
-                loop();
+                const xTo = gsap.quickTo(img, 'xPercent', { duration: 0.8, ease: 'power3' });
+                const yTo = gsap.quickTo(img, 'yPercent', { duration: 0.8, ease: 'power3' });
+                window.addEventListener('mousemove', (e) => {
+                    xTo((e.clientX / window.innerWidth - 0.5) * -8);
+                    yTo((e.clientY / window.innerHeight - 0.5) * -8);
+                }, { passive: true });
             },
 
             init() {
                 if (this.darkMode) document.documentElement.dataset.theme = 'dark';
                 enhanceCodeBlocks(document);
                 window.$ = (selector) => document.querySelector(selector);
+                // 首页：最新一篇的标题逐字浮现，日期和摘要随后淡入；文章页直接打开时标题同样逐字浮现
+                const hero = $('main > div');
+                if (hero && motion) {
+                    revealTitle(hero.querySelector('h2 > a'), curtain);
+                    gsap.from(hero.querySelectorAll(':scope > p, :scope > div'), {
+                        autoAlpha: 0, y: 20, duration: 0.8, ease: 'power2.out', stagger: 0.2, delay: curtain + 0.5,
+                    });
+                }
+                revealTitle($('body > article > h1'), curtain);
+                revealCards(document.querySelectorAll('main > ol > li'));
+                // 窄屏下卡片高度随懒加载的封面变化，图片加载完（load 不冒泡，用捕获）重新计算触发位置
+                const refresh = gsap.delayedCall(0.3, () => ScrollTrigger.refresh()).pause();
+                $('main')?.addEventListener('load', () => refresh.restart(true), true);
                 window.onpopstate = (e) => {
                     if (!e.state) return (location.href = location.origin);
                     document.title = e.state.t;
@@ -184,6 +237,7 @@ document.addEventListener('alpine:init', () => {
                 document.title = doc.title;
                 this.$refs.nav.open = false;
                 openPreview();
+                revealTitle(preview.querySelector('article > h1'), 0.3);
             },
 
             async ajaxNextPage(e) {
@@ -202,7 +256,9 @@ document.addEventListener('alpine:init', () => {
                         list = document.createElement('ol');
                         button.before(list);
                     }
-                    list.append(...doc.querySelectorAll('main > ol > li'));
+                    const cards = doc.querySelectorAll('main > ol > li');
+                    list.append(...cards);
+                    revealCards(cards);
                     this.hasMore = doc.querySelector('main > button[data-more]')?.dataset.more === 'true';
                     this.pageNum++;
                 } finally {

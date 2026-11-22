@@ -121,33 +121,30 @@ html[data-theme="dark"] {
     }
 }
 
-/* === 开场帘幕动画 === */
-@keyframes l_translate {
-    0%   { transform: translateX(50vw); }
-    25%  { transform: translateX(50vw); }
-    100% { transform: translateX(100vw); }
+/* === 开场推门动画（结构见下方 #door） === */
+@keyframes door-l    { to { transform: translateX(-100%); visibility: hidden; } }
+@keyframes door-r    { to { transform: translateX(100%); visibility: hidden; } }
+@keyframes door-veil { to { opacity: 0; visibility: hidden; } }
+
+@keyframes door-bloom {
+    0%   { transform: scale(.16) rotate(-42deg); opacity: .25; }
+    58%  { transform: scale(1.06) rotate(4deg); opacity: 1; }
+    100% { transform: none; opacity: 1; }
 }
 
-@keyframes r_translate {
-    0%   { transform: translateX(0); }
-    25%  { transform: translateX(0); }
-    100% { transform: translateX(-50vw); }
+@keyframes door-bloom-mirror {
+    0%   { transform: scale(.16) rotate(42deg); opacity: .25; }
+    58%  { transform: scale(1.06) rotate(-4deg); opacity: 1; }
+    100% { transform: none; opacity: 1; }
 }
 
-@keyframes r_translate_mobile {
-    0%   { transform: translateX(0); }
-    25%  { transform: translateX(0); }
-    100% { transform: translateX(-100vw); }
-}
+@keyframes door-grow-o { 0%, 100% { transform: scale(.86); } 50% { transform: scale(1.05); } }
+@keyframes door-grow-i { 0%, 100% { transform: scale(1.05); } 50% { transform: scale(.84); } }
+@keyframes door-spin   { to { transform: rotate(1turn); } }
 
 @keyframes fadeIn {
     from { opacity: 0; }
     to   { opacity: 1; }
-}
-
-@keyframes slideUp {
-    from { opacity: 0; transform: translateY(24px); }
-    to   { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes grow-progress {
@@ -169,39 +166,104 @@ html {
         overflow: hidden;
     }
 
-    &::before,
-    &::after {
-        content: "";
-        transform: translateX(-100vw);
-        position: fixed;
-        top: 0;
-        display: block;
-        z-index: 100;
-        width: 50vw;
-        height: 100vh;
-        background-size: cover;
-        background-repeat: no-repeat;
-    }
-
-    &::before {
-        animation: r_translate 2s;
-    }
-
-    &::after {
-        animation: l_translate 2s;
-    }
 }
 
 /* === body === */
 body {
     width: 100vw;
-    transition: opacity 1.5s ease 0.4s;
+}
 
-    @starting-style {
-        opacity: 0;
+/* === 开场推门 ===
+ * 整页加载时盖住页面：花 0.2s 起展开（1.6s），2s 时两扇向两边拉开（1s），3s 结束。
+ * 门和圆盘上的字是静态图；花单独成层，只做 transform/opacity 动画，交给合成器，不会每帧重画 SVG。
+ * 图层的 data URI 在 backup.css。门在 body 里，所以 body 不能再整体淡入，改由 ::before 的底色遮罩淡出。
+ * 播完由 Smoe.js 移除；系统开了“减少动态效果”时不显示。 */
+#door {
+    display: contents;
+
+    /* 门拉开时页面从底色里淡出来 */
+    &::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        z-index: 99;
+        background: var(--c-bg);
+        animation: door-veil 1s ease 1.9s both;
     }
 
+    & > div {
+        --pw: 50vw;                                     /* 门扇宽 */
+        --sw: max(var(--pw), 100vh * 8 / 9);            /* 画布宽：门图（viewBox 800×900）按 cover 铺满门扇 */
+        --mw: min(var(--sw) * .7, var(--pw) * 1.04);    /* 圆盘图层框宽（560 个单位），窄屏时缩到整圈露出来 */
+        position: fixed;
+        top: 0;
+        z-index: 100;
+        width: var(--pw);
+        height: 100vh;
+        overflow: hidden;
+        animation: 1s cubic-bezier(.65, 0, .35, 1) 2s both;
+    }
 
+    /* 底色只在门图解码出来之前垫一下 */
+    /* --cx：圆盘中心的 x / 800（左扇 366，右扇 1212 - 800） */
+    & .door-l {
+        --cx: .4575;
+        left: 0;
+        animation-name: door-l;
+        background: linear-gradient(#F0ECE1 50%, #A82446 50%);
+    }
+
+    & .door-r {
+        --cx: .515;
+        left: 50vw;
+        animation-name: door-r;
+        background: linear-gradient(#0E2842 50%, #F4F1E8 50%);
+    }
+
+    /* 画布尽量让圆盘落在门扇正中，但不能露出门扇边（16:9 时正好是 left: 0） */
+    & .stage {
+        position: absolute;
+        top: 0;
+        left: clamp(var(--pw) - var(--sw), var(--pw) / 2 - var(--cx) * var(--sw), 0px);
+        width: var(--sw);
+        aspect-ratio: 8 / 9;
+        background-size: 100% 100%;
+    }
+
+    /* 圆盘（底、花、字和边框）单独成层，中心在画布的 (--cx, 448 / 800) */
+    & .medal {
+        position: absolute;
+        left: calc(var(--cx) * var(--sw) - var(--mw) / 2);
+        top: calc(var(--sw) * .56 - var(--mw) / 2);
+        width: var(--mw);
+        aspect-ratio: 1;
+    }
+
+    & .medal :is(div, i) {
+        position: absolute;
+        inset: 0;
+        background-size: 100% 100%;
+    }
+
+    /* 花：展开 → 呼吸缩放 → 内外两层反向旋转，关键帧与 AI Studio 原版一致 */
+    & .bloom {
+        animation: door-bloom 1.6s cubic-bezier(.22, 1, .36, 1) .2s both;
+    }
+
+    & .door-r .bloom {
+        animation-name: door-bloom-mirror;
+    }
+
+    & .grow-o { animation: door-grow-o 8.5s ease-in-out infinite; }
+    & .grow-i { animation: door-grow-i 7.2s ease-in-out infinite; }
+    & .spin-cw { animation: door-spin 26s linear infinite; }
+    & .spin-ccw { animation: door-spin 20s linear infinite reverse; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    #door {
+        display: none;
+    }
 }
 
 /* === 图片默认占位 === */
@@ -304,7 +366,6 @@ main {
             display: flex;
             flex-direction: row;
             align-items: center;
-            animation: slideUp 0.5s ease both;
 
             & > a {
                 height: 100%;
@@ -511,6 +572,7 @@ details {
 
 
 /* === 文章预览滑入层 === */
+/* 滑入滑出由 Smoe.js 里的 GSAP 控制，这里不要再写 transform/transition，否则会叠加或互相拖慢 */
 aside {
     position: fixed;
     width: 100vw;
@@ -522,8 +584,6 @@ aside {
     display: flex;
     flex-direction: column;
     align-items: center;
-    transform: translateX(100%);
-    transition: transform 0.5s cubic-bezier(0.25, 0.5, 0.5, 0.9);
 
     & > article {
         position: relative;
@@ -1017,13 +1077,13 @@ section {
 }
 
 @media screen and (max-width: 640px) {
-    html {
-        &::before {
-            width: 100vw;
-            animation: r_translate_mobile 2s;
+    /* 窄屏只显示左扇，铺满整屏 */
+    #door {
+        & .door-l {
+            --pw: 100vw;
         }
 
-        &::after {
+        & .door-r {
             display: none;
         }
     }
