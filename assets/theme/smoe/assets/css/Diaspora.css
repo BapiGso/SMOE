@@ -382,7 +382,6 @@ main {
                         width: 18px;
                         height: 18px;
                         margin-right: 5px;
-                        fill: var(--c-text);
                     }
                 }
             }
@@ -641,20 +640,33 @@ aside {
             &[aria-pressed="true"]::after { clip-path: polygon(70% 0, 70% 100%, 46% 100%, 46% 0); }
         }
 
+        /* 闭着眼的心；点赞后心被填满、睁开眼（睁眼那组在 like.svg 里默认 display="none"） */
         & > [data-action="like"] {
-            & path {
-                fill: none;
-                stroke: var(--c-muted);
-                transition: all .3s ease;
+            transition: color .3s ease;
+
+            & svg > path {
+                transition: fill .3s ease;
             }
 
-            &[data-liked] path {
-                fill: var(--c-accent);
-                stroke: var(--c-accent);
-            }
+            &[data-liked] {
+                color: var(--c-accent);
 
-            &[data-liked] svg {
-                animation: like-pop .4s ease;
+                & svg {
+                    animation: like-pop .4s ease;
+                }
+
+                & svg > path {
+                    fill: currentColor;
+                }
+
+                & .lid {
+                    display: none;
+                }
+
+                & .eye {
+                    display: inline;
+                    color: var(--c-bg);
+                }
             }
         }
 

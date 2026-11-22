@@ -8,7 +8,7 @@
         <h3>{{ .Title }}</h3>
         <button data-action="like"
                 x-init="if(localStorage.getItem('liked:'+$el.closest('article').dataset.id)==='1')$el.dataset.liked=''"
-                @click="likePost($el)">{{ partial "icon.html" "heart" }}</button>
+                @click="likePost($el)">{{ partial "icon.html" "like" }}</button>
         <button data-action="theme" @click="toggleDark($event)" :title="darkMode ? '浅色模式' : '深色模式'">{{ partial "icon.html" "theme" }}</button>
     </header>
     <h1>{{ .Title }}</h1>
