@@ -10,8 +10,6 @@ permissions:
 
 env:
   NAME: ${{ github.event.repository.name }}
-  OSES: linux windows darwin
-  ARCHES: amd64 arm64 riscv64
 
 jobs:
   release:
@@ -24,17 +22,9 @@ jobs:
           go-version: stable
           check-latest: true
 
-      - name: Build
-        run: |
-          valid=$(go tool dist list)
-          for os in $OSES; do
-            for arch in $ARCHES; do
-              echo "$valid" | grep -q "^${os}/${arch}$" || continue
-              ext=""; [[ $os == windows ]] && ext=.exe
-              CGO_ENABLED=0 GOOS=$os GOARCH=$arch go build -o "${NAME}_${os}_${arch}${ext}" -trimpath -ldflags="-s -w" || true
-            done
-          done
+      - name: Build linux/amd64
+        run: CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o "${NAME}_linux_amd64" -trimpath -ldflags="-s -w"
 
       - uses: softprops/action-gh-release@v2
         with:
-          files: ${{ env.NAME }}_*
+          files: ${{ env.NAME }}_linux_amd64
