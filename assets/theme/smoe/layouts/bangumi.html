@@ -12,6 +12,13 @@
         }
     }
 
+    & > p {
+        margin: 40vh auto;
+        text-align: center;
+        color: var(--c-muted);
+        letter-spacing: .2em;
+    }
+
     & h2 {
         display: flex;
         align-items: center;
@@ -192,6 +199,9 @@
     <header class="page-header">
         <button data-action="back" @click="goBack()" aria-label="返回">{{ partial "icon.html" "back" }}</button>
     </header>
+    {{- if not $items }}
+    <p>暂时没有取到番剧数据，稍后再来看看吧</p>
+    {{- else }}
     <section aria-label="看过">
         <h2>看过</h2>
         <ul>
@@ -204,5 +214,6 @@
             {{- range $items }}{{ if eq (int .type) 1 }}{{ partial "bangumi-item.html" . }}{{ end }}{{ end }}
         </ul>
     </section>
+    {{- end }}
 </article>
 {{ end }}
